@@ -104,7 +104,7 @@ class RedditProcessorService : JobIntentService() {
         const val LOG_TAG = "ProcessorService"
 
         private val contentTypeToFileNameMap = mutableMapOf(
-            ContentType.GIF to "gif.gif",
+            ContentType.GIF to "gif.mp4",
             ContentType.VIDEO to "video.mp4",
             ContentType.IMAGE to "image.jpg",
         )
