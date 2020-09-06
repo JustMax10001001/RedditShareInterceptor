@@ -1,8 +1,6 @@
 package com.justsoft.redditshareinterceptor
 
 import com.justsoft.redditshareinterceptor.processors.PostProcessor
-import java.lang.Exception
-import java.lang.StringBuilder
 
 open class ProcessorSelectionException(
     message: String = "",
@@ -34,40 +32,30 @@ class MultipleSuitableProcessorsExceptions(
 }
 
 class NoSuitableProcessorException(
-    message: String = "There are no suitable PostProcessors"
+    message: String = "There are no suitable PostProcessors."
 ): ProcessorSelectionException(message)
 
 open class MediaDownloadException(
-    message: String = "Error while downloading post media",
+    message: String = "Error while downloading post media.",
     cause: Throwable? = null
 ): Exception(message, cause)
 
 class DescriptorCreationException(
-    message: String = "Unable to create file descriptor",
+    message: String = "Unable to create file descriptor.",
     cause: Throwable? = null
 ): MediaDownloadException(message, cause)
 
 open class PostProcessingException(
-    message: String = "Unable to process post",
+    message: String = "Unable to process post.",
     cause: Throwable? = null
 ): Exception(message, cause)
 
 class PostContentTypeAcquiringException(
-    message: String = "Unable to get post content type",
+    message: String = "Unable to get post content type.",
     cause: Throwable? = null
-): PostProcessingException(message, cause) {
-    private val localMessage: String = message
-
-    override val message: String?
-        get() = super.message + localMessage
-}
+): PostProcessingException(message, cause)
 
 class PostContentUrlAcquiringException(
-    message: String = "Unable to get post content url",
+    message: String = "Unable to get post content url.",
     cause: Throwable? = null
-): PostProcessingException(message, cause) {
-    private val localMessage: String = message
-
-    override val message: String?
-        get() = super.message + localMessage
-}
+): PostProcessingException(message, cause)
