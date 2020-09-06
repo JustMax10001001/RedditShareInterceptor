@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">RedditShareInterceptor</string>
+    <string name="shareButtonLabel">Share</string>
+    <string name="filePickButtonLabel">Pick a file</string>
+    <string name="interceptor_label">Download media and share</string>
+    <string name="selected_file">Selected file: {0}</string>
+</resources>
