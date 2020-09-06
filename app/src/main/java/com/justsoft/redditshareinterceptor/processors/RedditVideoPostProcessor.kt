@@ -4,13 +4,10 @@ import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.util.RequestHelper
-import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
-import java.net.URL
 import java.net.URLEncoder
-import java.util.regex.Pattern
 
 class RedditVideoPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
@@ -21,12 +18,20 @@ class RedditVideoPostProcessor : PostProcessor {
         savedState: Bundle,
         requestHelper: RequestHelper
     ): ContentType {
-        val htmlDoc = Jsoup.parse(
+        /*val htmlDoc = Jsoup.parse(
             requestHelper.readHttpJsonResponse(
                 RIPSAVE_GETLINK_URL,
                 mutableMapOf("url" to redditPost.url)
             ).getString("data")
-        )
+        )*/
+        val htmlDoc = Jsoup
+            .connect(RIPSAVE_GETLINK_URL)
+            .data(
+                mapOf(
+                    "url" to redditPost.url
+                )
+            )
+            .get()
         val tableColumn = htmlDoc
             .getElementsByClass("table-col")[0]         // get table column, then check if there is element with value "Video with Audio"
         val downloadTables = tableColumn.getElementsByClass("downloadTable")
@@ -80,7 +85,7 @@ class RedditVideoPostProcessor : PostProcessor {
             downloadTables[0]
         else
             tableColumn
-                .getElementsContainingText("Video with Audio")[0]   // <i>
+                .getElementsContainingText("Video with Audio")[0]   // current tag: <i>
                 .parent()       // <h5>
                 .parent()       // <div>
                 .getElementsByTag("table")[0]

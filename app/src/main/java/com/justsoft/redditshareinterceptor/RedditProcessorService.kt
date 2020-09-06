@@ -82,7 +82,7 @@ class RedditProcessorService : JobIntentService() {
                     contentResolver.openFileDescriptor(
                         getInternalFileUri(contentTypeToFileNameMap[contentType]!!),
                         "w"
-                    )!!.fileDescriptor
+                    )!!
                 }
             }
         }

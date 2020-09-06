@@ -1,18 +1,13 @@
 package com.justsoft.redditshareinterceptor
 
-import android.net.Uri
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import org.json.JSONArray
-import java.io.FileDescriptor
-import java.lang.Exception
-import java.util.concurrent.Executors
 import java.util.regex.Pattern
 
 class RedditPostHandler(private val requestHelper: RequestHelper) {
@@ -43,7 +38,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
     fun handlePostUrl(
         dirtyUrl: String,
-        createDestinationFileDescriptor: (ContentType) -> FileDescriptor
+        createDestinationFileDescriptor: (ContentType) -> ParcelFileDescriptor
     ) {
         val postUrl = extractSimpleUrl(dirtyUrl)
 
@@ -61,7 +56,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
     private fun getAndProcessRedditPost(
         cleanUrl: String,
-        createDestinationFileDescriptor: (ContentType) -> FileDescriptor
+        createDestinationFileDescriptor: (ContentType) -> ParcelFileDescriptor
     ) {
         val postObject = getRedditPostObj(cleanUrl)
 
