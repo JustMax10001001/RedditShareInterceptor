@@ -62,38 +62,74 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
         val postProcessor = selectPostProcessor(postObject)
         Log.d(LOG_TAG, "Selected processor ${postProcessor.javaClass.simpleName}")
+
         val postProcessorBundle = Bundle()
-        val postContentType = try {
+        val postContentType = getPostMediaType(postProcessor, postObject, postProcessorBundle)
+        Log.d(LOG_TAG, "Post content type is $postContentType")
+
+        if (postContentType != ContentType.TEXT) {
+            val postMediaUrl =
+                getMediaFileDownloadUrl(postProcessor, postObject, postProcessorBundle)
+            Log.d(LOG_TAG, "Post media download url is $postMediaUrl")
+
+            val fileDescriptor =
+                createMediaFileDescriptor(createDestinationFileDescriptor, postContentType)
+            downloadMedia(postMediaUrl, fileDescriptor)
+            Log.d(LOG_TAG, "Post successfully downloaded")
+
+            onMediaDownloaded(postContentType, postObject)
+        } else {
+            onTextPost(postObject)
+        }
+    }
+
+    private fun getPostMediaType(
+        postProcessor: PostProcessor,
+        postObject: RedditPost,
+        postProcessorBundle: Bundle
+    ): ContentType {
+        return try {
             postProcessor.getPostContentType(
                 postObject, postProcessorBundle, requestHelper
             )
         } catch (e: Exception) {
             throw PostContentTypeAcquiringException(cause = e)
         }
-        Log.d(LOG_TAG, "Post content type is $postContentType")
-        if (postContentType != ContentType.TEXT) {
-            val postMediaUrl = try {
-                postProcessor.getMediaDownloadUrl(
-                    postObject, postProcessorBundle, requestHelper
-                )
-            } catch (e: Exception) {
-                throw PostContentUrlAcquiringException(cause = e)
-            }
-            Log.d(LOG_TAG, "Post media download url is $postMediaUrl")
-            val fileDescriptor = try {
-                createDestinationFileDescriptor(postContentType)
-            } catch (e: Exception) {
-                throw DescriptorCreationException(cause = e)
-            }
-            try {
-                requestHelper.downloadFile(postMediaUrl, fileDescriptor)
-            } catch (e: Exception) {
-                throw MediaDownloadException(cause = e)
-            }
-            Log.d(LOG_TAG, "Post successfully downloaded")
-             onMediaDownloaded(postContentType, postObject)
-        } else {
-            onTextPost(postObject)
+    }
+
+    private fun getMediaFileDownloadUrl(
+        postProcessor: PostProcessor,
+        postObject: RedditPost,
+        postProcessorBundle: Bundle
+    ): String {
+        return try {
+            postProcessor.getMediaDownloadUrl(
+                postObject, postProcessorBundle, requestHelper
+            )
+        } catch (e: Exception) {
+            throw PostContentUrlAcquiringException(cause = e)
+        }
+    }
+
+    private fun createMediaFileDescriptor(
+        createDestinationFileDescriptor: (ContentType) -> ParcelFileDescriptor,
+        postContentType: ContentType
+    ): ParcelFileDescriptor {
+        return try {
+            createDestinationFileDescriptor(postContentType)
+        } catch (e: Exception) {
+            throw DescriptorCreationException(cause = e)
+        }
+    }
+
+    private fun downloadMedia(
+        postMediaUrl: String,
+        fileDescriptor: ParcelFileDescriptor
+    ) {
+        try {
+            requestHelper.downloadFile(postMediaUrl, fileDescriptor)
+        } catch (e: Exception) {
+            throw MediaDownloadException(cause = e)
         }
     }
 
