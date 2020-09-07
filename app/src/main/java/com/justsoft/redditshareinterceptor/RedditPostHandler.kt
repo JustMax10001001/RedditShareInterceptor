@@ -122,7 +122,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         }
     }
 
-    private fun downloadMedia(
+    fun downloadMedia(
         postMediaUrl: String,
         fileDescriptor: ParcelFileDescriptor
     ) {
