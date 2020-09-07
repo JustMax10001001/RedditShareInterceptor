@@ -5,6 +5,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.JobIntentService
@@ -78,15 +79,16 @@ class RedditProcessorService : JobIntentService() {
         when (intent.action) {
             ACTION_PROCESS_REDDIT_URL -> {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
-                mRedditPostHandler.handlePostUrl(url) { contentType ->
-                    contentResolver.openFileDescriptor(
-                        getInternalFileUri(contentTypeToFileNameMap[contentType]!!),
-                        "w"
-                    )!!
-                }
+                mRedditPostHandler.handlePostUrl(url, this::createFileDescriptor)
             }
         }
     }
+
+    private fun createFileDescriptor(contentType: ContentType): ParcelFileDescriptor =
+        contentResolver.openFileDescriptor(
+            getInternalFileUri(contentTypeToFileNameMap[contentType]!!),
+            "w"
+        )!!
 
     override fun onDestroy() {
         Log.d(LOG_TAG, "onDestroy()")
