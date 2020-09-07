@@ -4,7 +4,6 @@ import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.util.RequestHelper
-import java.net.URL
 
 class ImgurImageProcessor: PostProcessor {
 

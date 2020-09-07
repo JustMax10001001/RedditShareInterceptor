@@ -40,11 +40,34 @@ class RedditProcessorService : JobIntentService() {
                 ).show()
             }
         }
-        mRedditPostHandler.mediaSuccess { contentType, redditPost ->
-            mHandler.post { startActivity(prepareMediaIntent(contentType, redditPost)) }
+        mRedditPostHandler.mediaSuccess { contentType, redditPost, imageCount ->
+            mHandler.post {
+                startActivity(
+                    if (imageCount == 1)
+                        prepareMediaIntent(contentType, redditPost)
+                    else
+                        prepareMediaMultipleIntent(contentType, redditPost, imageCount)
+                )
+            }
         }
         mRedditPostHandler.textSuccess { redditPost ->
             mHandler.post { startActivity(prepareTextIntent(redditPost)) }
+        }
+    }
+
+    private fun prepareMediaMultipleIntent(
+        contentType: ContentType,
+        redditPost: RedditPost,
+        imageCount: Int
+    ): Intent {
+        return prepareIntent(getMimeForContentType(contentType), "${redditPost.subreddit}\r\n${redditPost.title}").apply {
+            action = Intent.ACTION_SEND_MULTIPLE
+
+            val uriList = ArrayList<Uri>()
+            for (i in 0 until imageCount)
+                uriList.add(getInternalFileUri(getFileNameForContentType(contentType, i)))
+
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList)
         }
     }
 
@@ -58,9 +81,9 @@ class RedditProcessorService : JobIntentService() {
 
     private fun prepareMediaIntent(contentType: ContentType, redditPost: RedditPost): Intent =
         prepareIntent(
-            contentTypeToMIME[contentType]!!,
+            getMimeForContentType(contentType),
             "${redditPost.subreddit}\r\n${redditPost.title}"
-        ).putExtra(Intent.EXTRA_STREAM, getInternalFileUri(contentTypeToFileNameMap[contentType]!!))
+        ).putExtra(Intent.EXTRA_STREAM, getInternalFileUri(getFileNameForContentType(contentType)))
 
     private fun prepareIntent(mimeType: String, extraText: String): Intent =
         Intent().apply {
@@ -84,9 +107,9 @@ class RedditProcessorService : JobIntentService() {
         }
     }
 
-    private fun createFileDescriptor(contentType: ContentType): ParcelFileDescriptor =
+    private fun createFileDescriptor(contentType: ContentType, mediaIndex: Int): ParcelFileDescriptor =
         contentResolver.openFileDescriptor(
-            getInternalFileUri(contentTypeToFileNameMap[contentType]!!),
+            getInternalFileUri(getFileNameForContentType(contentType, mediaIndex)),
             "w"
         )!!
 
@@ -102,19 +125,27 @@ class RedditProcessorService : JobIntentService() {
         )
     }
 
+    private fun getFileNameForContentType(contentType: ContentType, index: Int = 0): String =
+        (contentTypeToFileNameMap[contentType] ?: error("No such key: $contentType in Filename map")).format(index)
+
+    private fun getMimeForContentType(contentType: ContentType): String =
+        contentTypeToMIME[contentType] ?: error("No such key: $contentType in MIME map")
+
     companion object {
         const val LOG_TAG = "ProcessorService"
 
-        private val contentTypeToFileNameMap = mutableMapOf(
+        private val contentTypeToFileNameMap = mapOf(
             ContentType.GIF to "gif.mp4",
             ContentType.VIDEO to "video.mp4",
             ContentType.IMAGE to "image.jpg",
+            ContentType.GALLERY to "image_%d.jpg",
         )
 
-        private val contentTypeToMIME = mutableMapOf(
+        private val contentTypeToMIME = mapOf(
             ContentType.GIF to "video/*",
             ContentType.VIDEO to "video/*",
             ContentType.IMAGE to "image/*",
+            ContentType.GALLERY to "image/*",
         )
 
         fun enqueueWork(context: Context, work: Intent) {

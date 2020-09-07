@@ -28,6 +28,22 @@ class RedditPostHandlerTest {
         assertEquals(post.title, "Let's not forget the original meme mod")
     }
 
+    @Test(expected = NoSuitableProcessorException::class)
+    fun testPostControllerSelector_NoController() {
+        val requestUrl = "https://www.reddit.com/r/feedthememes/comments/ilt7jo/"
+        val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
+        Mockito
+            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .thenReturn(
+                createMockPostJsonResponse(
+                    createMockPostObject()
+                )
+            )
+        val postHandler = RedditPostHandler(mockRequestHelper)
+        val post = postHandler.getRedditPostObj(requestUrl)
+        postHandler.selectPostProcessor(post)
+    }
+
     @Test
     fun testPostControllerSelector_RedditImage() {
         val requestUrl = "https://www.reddit.com/r/techsupportgore/comments/ilrwy8/"
@@ -48,20 +64,24 @@ class RedditPostHandlerTest {
         assert(postHandler.selectPostProcessor(post) is RedditImagePostProcessor)
     }
 
-    @Test(expected = NoSuitableProcessorException::class)
-    fun testPostControllerSelector_NoController() {
-        val requestUrl = "https://www.reddit.com/r/feedthememes/comments/ilt7jo/"
+    @Test
+    fun testPostControllerSelector_RedditGallery() {
+        val requestUrl = "https://www.reddit.com/r/announcements/comments/hrrh23/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
             .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
             .thenReturn(
                 createMockPostJsonResponse(
-                    createMockPostObject()
+                    createMockPostObject(
+                        mapOf(
+                            "url" to "https://www.reddit.com/gallery/hrrh23"
+                        )
+                    )
                 )
             )
         val postHandler = RedditPostHandler(mockRequestHelper)
         val post = postHandler.getRedditPostObj(requestUrl)
-        postHandler.selectPostProcessor(post)
+        assert(postHandler.selectPostProcessor(post) is RedditGalleryPostProcessor)
     }
 
     @Test

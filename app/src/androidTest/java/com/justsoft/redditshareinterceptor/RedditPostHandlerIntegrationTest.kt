@@ -28,7 +28,7 @@ class RedditPostHandlerIntegrationTest {
         postHandler.error {
             throw it
         }
-        postHandler.mediaSuccess { _, _ -> assert(true) }
+        postHandler.mediaSuccess { _, _, _ -> assert(true) }
     }
 
     @Test
@@ -78,8 +78,8 @@ class RedditPostHandlerIntegrationTest {
 
         targetFile.delete()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") {
-            assertEquals(ContentType.VIDEO, it)
+        postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") { contentType, _ ->
+            assertEquals(ContentType.VIDEO, contentType)
             openFileDescriptor(context, targetFileUri)
         }
 
@@ -95,12 +95,36 @@ class RedditPostHandlerIntegrationTest {
 
         targetFile.delete()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") {
-            assertEquals(ContentType.IMAGE, it)
+        postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") { contentType, index ->
+            assertEquals(ContentType.IMAGE, contentType)
+            assertEquals(0, index)
             openFileDescriptor(context, targetFileUri)
         }
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
+    }
+
+    @Test
+    fun postHandleText_RedditGallery() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+
+        val targetFiles = mutableListOf<File>()
+        val targetFileUris = mutableListOf<Uri>()
+
+        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/"){ contentType, index ->
+            assertEquals(ContentType.GALLERY, contentType)
+
+            targetFiles.add(File(context.filesDir, "test_$index.jpg"))
+            targetFiles[index].delete()
+            targetFileUris.add(getInternalFileUri(context, targetFiles[index]))
+
+            openFileDescriptor(context, targetFileUris[index])
+        }
+
+        for (file in targetFiles) {
+            assert(file.exists())
+            assert(file.length() > 0)
+        }
     }
 }
