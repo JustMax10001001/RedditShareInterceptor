@@ -13,7 +13,7 @@ The app was created because author's friends were annoyed of him sharing Reddit 
 ### 1. Q: Supported apps?
 A: The app was tested with official Reddit app and official Telegram client
 ### 2. Q: Which media types are supported?
-A: Photo, video, GIF's and plain text posts are supported
+A: Photo, multi-image, video, GIF's and plain text posts are supported
 ### 3. Q: How about media which is hosted outside Reddit(e.g. Gfycat)?
 A: The app supports media hosted on Imgur, Gfycat, and Redgifs
 ### 4. Q: Is audio in videos supported?
