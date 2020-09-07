@@ -43,10 +43,14 @@ class RedditProcessorService : JobIntentService() {
         mRedditPostHandler.mediaSuccess { contentType, redditPost, imageCount ->
             mHandler.post {
                 startActivity(
-                    if (imageCount == 1)
-                        prepareMediaIntent(contentType, redditPost)
-                    else
-                        prepareMediaMultipleIntent(contentType, redditPost, imageCount)
+                    when (contentType) {
+                        ContentType.GALLERY -> prepareMediaMultipleIntent(
+                            contentType,
+                            redditPost,
+                            imageCount
+                        )
+                        else -> prepareMediaIntent(contentType, redditPost)
+                    }
                 )
             }
         }
@@ -60,7 +64,10 @@ class RedditProcessorService : JobIntentService() {
         redditPost: RedditPost,
         imageCount: Int
     ): Intent {
-        return prepareIntent(getMimeForContentType(contentType), "${redditPost.subreddit}\r\n${redditPost.title}").apply {
+        return prepareIntent(
+            getMimeForContentType(contentType),
+            "${redditPost.subreddit}\r\n${redditPost.title}"
+        ).apply {
             action = Intent.ACTION_SEND_MULTIPLE
 
             val uriList = ArrayList<Uri>()
@@ -107,7 +114,10 @@ class RedditProcessorService : JobIntentService() {
         }
     }
 
-    private fun createFileDescriptor(contentType: ContentType, mediaIndex: Int): ParcelFileDescriptor =
+    private fun createFileDescriptor(
+        contentType: ContentType,
+        mediaIndex: Int
+    ): ParcelFileDescriptor =
         contentResolver.openFileDescriptor(
             getInternalFileUri(getFileNameForContentType(contentType, mediaIndex)),
             "w"
@@ -126,7 +136,8 @@ class RedditProcessorService : JobIntentService() {
     }
 
     private fun getFileNameForContentType(contentType: ContentType, index: Int = 0): String =
-        (contentTypeToFileNameMap[contentType] ?: error("No such key: $contentType in Filename map")).format(index)
+        (contentTypeToFileNameMap[contentType]
+            ?: error("No such key: $contentType in Filename map")).format(index)
 
     private fun getMimeForContentType(contentType: ContentType): String =
         contentTypeToMIME[contentType] ?: error("No such key: $contentType in MIME map")
