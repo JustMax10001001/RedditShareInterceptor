@@ -36,4 +36,4 @@ obj/
 .externalNativeBuild
 
 # keys
-*.jks
+rsi.jks
