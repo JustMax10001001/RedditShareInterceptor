@@ -20,12 +20,6 @@
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true">
         </service>
-
-        <activity android:name=".ShareActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN"/>
-            </intent-filter>
-        </activity>
         <activity
             android:name=".ActivityRedditInterceptor"
             android:label="@string/interceptor_label"
