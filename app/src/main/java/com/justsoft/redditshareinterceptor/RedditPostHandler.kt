@@ -35,6 +35,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
                 TextPostProcessor(),
                 RedGifsPostProcessor(),
                 RedditGalleryPostProcessor(),
+                StreamablePostProcessor(),
             )
         )
     }
