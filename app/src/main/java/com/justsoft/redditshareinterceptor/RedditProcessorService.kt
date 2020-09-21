@@ -32,6 +32,7 @@ class RedditProcessorService : JobIntentService() {
 
         when (intent.action) {
             ACTION_PROCESS_REDDIT_URL -> {
+
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
                 mRedditPostHandler.handlePostUrl(url, this::createFileDescriptor)
             }
