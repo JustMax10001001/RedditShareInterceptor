@@ -45,6 +45,8 @@ class RedditProcessorService : JobIntentService() {
         Log.d(LOG_TAG, "onCreate()")
         mRedditPostHandler.error {
             Log.e(LOG_TAG, "Error processing post", it)
+            FirebaseCrashlytics.getInstance().recordException(it)
+
             mHandler.post {
                 Toast.makeText(
                     applicationContext,
