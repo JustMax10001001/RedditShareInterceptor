@@ -34,7 +34,7 @@
         </activity>
 
         <provider
-            android:authorities="com.justsoft.redditshareinterceptor.provider"
+            android:authorities="@string/provider_name"
             android:name="androidx.core.content.FileProvider"
             android:grantUriPermissions="true"
             android:exported="false">
