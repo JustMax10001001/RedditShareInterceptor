@@ -38,3 +38,4 @@ obj/
 # keys
 rsi.jks
 /app/release/output-metadata.json
+/app/google-services.json
