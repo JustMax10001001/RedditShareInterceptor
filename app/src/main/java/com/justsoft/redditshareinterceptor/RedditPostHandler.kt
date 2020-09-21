@@ -3,13 +3,11 @@ package com.justsoft.redditshareinterceptor
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
-import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.processors.RedditGalleryPostProcessor.Companion.KEY_GET_URL_OF_IMAGE_INDEX
 import com.justsoft.redditshareinterceptor.processors.RedditGalleryPostProcessor.Companion.KEY_IMAGES_COUNT
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,7 +33,6 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
                 TextPostProcessor(),
                 RedGifsPostProcessor(),
                 RedditGalleryPostProcessor(),
-                StreamablePostProcessor(),
             )
         )
     }
@@ -71,18 +68,10 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
         val postProcessor = selectPostProcessor(postObject)
         Log.d(LOG_TAG, "Selected processor ${postProcessor.javaClass.simpleName}")
-        FirebaseAnalyticsHelper.getInstance().logEvent("select_post_processor") {
-            param("clean_url", cleanUrl)
-            param("processor_name", postProcessor.javaClass.simpleName)
-        }
 
         val postProcessorBundle = Bundle()
         val postContentType = getPostMediaType(postProcessor, postObject, postProcessorBundle)
         Log.d(LOG_TAG, "Post content type is $postContentType")
-        FirebaseAnalyticsHelper.getInstance().logEvent("get_media_type") {
-            param("clean_url", cleanUrl)
-            param("processor_name", postContentType.toString())
-        }
 
         when (postContentType) {
             ContentType.GALLERY -> {
