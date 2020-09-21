@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
@@ -27,11 +28,25 @@ class RedditProcessorService : JobIntentService() {
         RedditPostHandler(VolleyRequestHelper(Volley.newRequestQueue(applicationContext)))
     }
 
+    override fun onHandleWork(intent: Intent) {
+        Log.d(LOG_TAG, "Caught intent!")
+
+        when (intent.action) {
+            ACTION_PROCESS_REDDIT_URL -> {
+                val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
+                FirebaseCrashlytics.getInstance().setCustomKey("url", url)
+                mRedditPostHandler.handlePostUrl(url, this::createFileDescriptor)
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate()")
         mRedditPostHandler.error {
             Log.e(LOG_TAG, "Error processing post", it)
+            FirebaseCrashlytics.getInstance().recordException(it)
+
             mHandler.post {
                 Toast.makeText(
                     applicationContext,
@@ -58,6 +73,12 @@ class RedditProcessorService : JobIntentService() {
             mHandler.post { startActivity(prepareTextIntent(redditPost)) }
         }
     }
+
+    override fun onDestroy() {
+        Log.d(LOG_TAG, "onDestroy()")
+    }
+
+    // INTENT CREATION
 
     private fun prepareMediaMultipleIntent(
         contentType: ContentType,
@@ -103,16 +124,9 @@ class RedditProcessorService : JobIntentService() {
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
         }
 
-    override fun onHandleWork(intent: Intent) {
-        Log.d(LOG_TAG, "Caught intent!")
+    // END INTENT CREATION
 
-        when (intent.action) {
-            ACTION_PROCESS_REDDIT_URL -> {
-                val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
-                mRedditPostHandler.handlePostUrl(url, this::createFileDescriptor)
-            }
-        }
-    }
+    // UTILITY METHODS
 
     private fun createFileDescriptor(
         contentType: ContentType,
@@ -122,10 +136,6 @@ class RedditProcessorService : JobIntentService() {
             getInternalFileUri(getFileNameForContentType(contentType, mediaIndex)),
             "w"
         )!!
-
-    override fun onDestroy() {
-        Log.d(LOG_TAG, "onDestroy()")
-    }
 
     private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
@@ -141,6 +151,8 @@ class RedditProcessorService : JobIntentService() {
 
     private fun getMimeForContentType(contentType: ContentType): String =
         contentTypeToMIME[contentType] ?: error("No such key: $contentType in MIME map")
+
+    // END UTILITY METHODS
 
     companion object {
         const val LOG_TAG = "ProcessorService"
