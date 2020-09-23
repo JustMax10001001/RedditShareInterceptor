@@ -72,8 +72,8 @@ class RedditProcessorService : JobIntentService() {
                 )
             }
         }
-        mRedditPostHandler.textSuccess { redditPost ->
-            mHandler.post { startActivity(prepareTextIntent(redditPost)) }
+        mRedditPostHandler.textSuccess { redditPost, caption ->
+            mHandler.post { startActivity(prepareTextIntent(redditPost, caption)) }
         }
     }
 
@@ -102,12 +102,10 @@ class RedditProcessorService : JobIntentService() {
         }
     }
 
-    private fun prepareTextIntent(redditPost: RedditPost): Intent =
+    private fun prepareTextIntent(redditPost: RedditPost, caption: String): Intent =
         prepareIntent(
             "text/*",
-            redditPost.subreddit +
-                    "\r\n${redditPost.title}" +
-                    "\r\n${redditPost.selftext}"
+            caption
         )
 
     private fun prepareMediaIntent(

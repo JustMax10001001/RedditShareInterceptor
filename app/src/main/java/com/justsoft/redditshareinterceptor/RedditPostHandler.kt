@@ -21,7 +21,7 @@ class RedditPostHandler(
     private val postProcessors = mutableListOf<PostProcessor>()
 
     private var onMediaDownloaded: (MediaContentType, RedditPost, Int) -> Unit = { _, _, _ -> }
-    private var onTextPost: (RedditPost) -> Unit = { }
+    private var onTextPost: (RedditPost, String) -> Unit = { _, _ -> }
     private var onError: (Throwable) -> Unit = { }
 
     init {
@@ -79,8 +79,26 @@ class RedditPostHandler(
             val filesDownloaded = downloadPostMedia(postProcessor, postObject, postProcessorBundle)
             onMediaDownloaded(postContentType, postObject, filesDownloaded)
         } else {
-            onTextPost(postObject)
+            val caption = getTextFromProcessor(
+                postProcessor, postObject, postProcessorBundle
+            )
+            onTextPost(postObject, caption)
         }
+    }
+
+    private fun getTextFromProcessor(
+        postProcessor: PostProcessor,
+        postObject: RedditPost,
+        postProcessorBundle: Bundle,
+        mediaSpec: MediaSpec = MediaSpec()
+    ): String {
+        return postProcessor.downloadMediaMatchingMediaSpec(
+            postObject,
+            postProcessorBundle,
+            requestHelper,
+            mediaSpec,
+            createDestinationFileDescriptor
+        )[0].caption
     }
 
     private fun downloadPostMedia(
@@ -120,7 +138,7 @@ class RedditPostHandler(
         this.onMediaDownloaded = onMediaDownloaded
     }
 
-    fun textSuccess(onTextSuccess: (RedditPost) -> Unit) {
+    fun textSuccess(onTextSuccess: (RedditPost, String) -> Unit) {
         this.onTextPost = onTextSuccess
     }
 
