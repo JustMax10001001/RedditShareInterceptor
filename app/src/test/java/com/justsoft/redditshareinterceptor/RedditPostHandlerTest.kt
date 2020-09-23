@@ -1,5 +1,7 @@
 package com.justsoft.redditshareinterceptor
 
+import android.os.ParcelFileDescriptor
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.TestRequestHelper
@@ -11,7 +13,7 @@ import org.mockito.Mockito
 
 class RedditPostHandlerTest {
 
-    private val redditPostHandler: RedditPostHandler = RedditPostHandler(TestRequestHelper())
+    private val redditPostHandler: RedditPostHandler = RedditPostHandler(TestRequestHelper(), this::createMockFileDescriptor)
 
     @Test
     fun extractSimpleUrl() {
@@ -39,7 +41,7 @@ class RedditPostHandlerTest {
                     createMockPostObject()
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         postHandler.selectPostProcessor(post)
     }
@@ -59,7 +61,7 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         assert(postHandler.selectPostProcessor(post) is RedditImagePostProcessor)
     }
@@ -79,7 +81,7 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         assert(postHandler.selectPostProcessor(post) is RedditGalleryPostProcessor)
     }
@@ -99,9 +101,9 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
-        assert(postHandler.selectPostProcessor(post) is ImgurImageProcessor)
+        assert(postHandler.selectPostProcessor(post) is RedditImagePostProcessor)
     }
 
     @Test
@@ -119,7 +121,7 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         assert(postHandler.selectPostProcessor(post) is RedditVideoPostProcessor)
     }
@@ -139,7 +141,7 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         assert(postHandler.selectPostProcessor(post) is GfycatPostProcessor)
     }
@@ -159,7 +161,7 @@ class RedditPostHandlerTest {
                     )
                 )
             )
-        val postHandler = RedditPostHandler(mockRequestHelper)
+        val postHandler = RedditPostHandler(mockRequestHelper, this::createMockFileDescriptor)
         val post = postHandler.getRedditPostObj(requestUrl)
         assert(postHandler.selectPostProcessor(post) is RedGifsPostProcessor)
     }
@@ -182,4 +184,9 @@ class RedditPostHandlerTest {
             .put(post)
         return arr.toString()
     }
+
+    private fun createMockFileDescriptor(
+        mediaContentType: MediaContentType,
+        mediaIndex: Int
+    ): ParcelFileDescriptor = throw NotImplementedError()
 }
