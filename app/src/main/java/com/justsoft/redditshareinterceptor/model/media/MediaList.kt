@@ -56,13 +56,19 @@ class MediaList(private val listMediaContentType: MediaContentType) : ArrayList<
         return sortedList.last()
     }
 
-    fun getMostSuitableMedia(mediaSpec: MediaSpec = MediaSpec()): List<MediaModel> {
+    fun getMostSuitableMedia(mediaSpec: MediaSpec = MediaSpec()): MediaList {
         val sortedList = this.sortedWith(compareBy(MediaModel::index, { -it.size }))
-        return sortedList
-            .groupBy(MediaModel::index)
-            .map { processSubList(mediaSpec, it.value) }
+        return MediaList(listMediaContentType).apply {
+            addAll(
+                sortedList
+                    .groupBy(MediaModel::index)
+                    .map { processSubList(mediaSpec, it.value) }
+            )
+        }
     }
 }
 
-fun mediaListOf(contentType: MediaContentType, vararg media: MediaModel): MediaList =
-    MediaList(contentType).apply { this.addAll(media) }
+fun mediaListOf(contentType: MediaContentType): MediaList = MediaList(contentType)
+
+fun mediaListOf(vararg media: MediaModel): MediaList =
+    MediaList(media[0].mediaType).apply { this.addAll(media) }
