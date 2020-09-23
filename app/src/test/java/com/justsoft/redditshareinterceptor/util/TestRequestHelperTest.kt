@@ -1,9 +1,8 @@
 package com.justsoft.redditshareinterceptor.util
 
+import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
-
-import org.junit.Assert.*
 
 class TestRequestHelperTest {
 
@@ -31,6 +30,14 @@ class TestRequestHelperTest {
                 "https://ripsave.com/getlink",
                 mutableMapOf("url" to "https://www.reddit.com/r/aww/comments/gzhpze/")
             )
+        )
+    }
+
+    @Test
+    fun testContentLength() {
+        assertEquals(
+            8772805,
+            requestHelper.getContentLength("https://thcf7.redgifs.com/PalatableFlashyBantamrooster-mobile.mp4")
         )
     }
 }
