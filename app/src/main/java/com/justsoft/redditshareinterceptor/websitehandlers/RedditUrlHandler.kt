@@ -115,7 +115,7 @@ class RedditUrlHandler : UrlHandler {
         return pattern.matcher(url).apply { this.find() }.group()
     }
 
-    private fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
+    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
         RedditPost(
             JSONArray(requestHelper.readHttpTextResponse("$postUrl.json"))
                 .getJSONObject(0)
