@@ -53,14 +53,14 @@ class StreamablePostProcessor : PostProcessor {
                     if (it != "original" || apiResponse.isNull("source"))
                         MediaModel(
                             mediaObj.getString("url"),
-                            mediaObj.getLong("size"),
-                            MediaContentType.VIDEO
+                            MediaContentType.VIDEO,
+                            mediaObj.getLong("size")
                         )
                     else
                         MediaModel(
                             apiResponse.getString("source"),
-                            mediaObj.getLong("size"),
-                            MediaContentType.VIDEO
+                            MediaContentType.VIDEO,
+                            mediaObj.getLong("size")
                         )
                 )
             }
