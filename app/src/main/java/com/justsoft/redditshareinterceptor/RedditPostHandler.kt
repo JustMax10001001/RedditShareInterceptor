@@ -4,8 +4,11 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.downloaders.*
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
+import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.model.media.MediaSpec
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
@@ -28,6 +31,13 @@ class RedditPostHandler(
         RedditGalleryPostProcessor(),
         StreamablePostProcessor(),
         RedditTwitterPostProcessor()
+    )
+
+    private val downloaders: Map<MediaContentType, MediaDownloader> = mapOf(
+        GIF to GifDownloader(),
+        VIDEO to VideoDownloader(),
+        IMAGE to ImageDownloader(),
+        GALLERY to GalleryDownloader()
     )
 
 
@@ -70,10 +80,19 @@ class RedditPostHandler(
             param("content_type", postContentType.toString())
         }
 
-        if (postContentType != MediaContentType.TEXT) {
-            val filesDownloaded = downloadPostMedia(postProcessor, postObject, postProcessorBundle)
-            onMediaDownloaded(postContentType, postObject, filesDownloaded)
+        if (postContentType != TEXT) {
+            val unfilteredMedia = getUnfilteredMedia(postProcessor, postObject, postProcessorBundle)
+            Log.d(LOG_TAG, "Got unfiltered media, count: ${unfilteredMedia.count()}")
+
+            val filteredMediaList = filterMedia(unfilteredMedia, MediaSpec())
+            Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
+
+            val downloadedMediaCount = downloadMedia(filteredMediaList)
+            Log.d(LOG_TAG, "Downloaded media, count: $downloadedMediaCount")
+
+            onMediaDownloaded(postContentType, postObject, downloadedMediaCount)
         } else {
+            Log.d(LOG_TAG, "Got text from processor")
             val caption = getTextFromProcessor(
                 postProcessor, postObject, postProcessorBundle
             )
@@ -84,8 +103,7 @@ class RedditPostHandler(
     private fun getTextFromProcessor(
         postProcessor: PostProcessor,
         postObject: RedditPost,
-        postProcessorBundle: Bundle,
-        mediaSpec: MediaSpec = MediaSpec()
+        postProcessorBundle: Bundle
     ): String {
         return postProcessor.getAllPossibleMediaModels(
             postObject,
@@ -94,20 +112,40 @@ class RedditPostHandler(
         )[0].caption
     }
 
-    private fun downloadPostMedia(
+    private fun downloadMedia(
+        filteredMediaList: MediaList
+    ): Int {
+        return try {
+            selectDownloaderForMediaType(filteredMediaList.listMediaContentType)
+                .downloadMedia(filteredMediaList, requestHelper, createDestinationFileDescriptor)
+        }catch (e: Exception) {
+            throw MediaDownloadException(cause = e)
+        }
+    }
+
+    private fun filterMedia(
+        unfilteredMediaList: MediaList,
+        filterSpec: MediaSpec
+    ): MediaList =
+        try {
+            unfilteredMediaList.getMostSuitableMedia(filterSpec)
+        } catch (e: Exception) {
+            throw MediaFilterException(cause = e)
+        }
+
+    private fun getUnfilteredMedia(
         postProcessor: PostProcessor,
         postObject: RedditPost,
-        postProcessorBundle: Bundle,
-        mediaSpec: MediaSpec = MediaSpec()
-    ): Int {
+        postProcessorBundle: Bundle
+    ): MediaList {
         return try {
             postProcessor.getAllPossibleMediaModels(
                 postObject,
                 postProcessorBundle,
                 requestHelper
-            ).count()
+            )
         } catch (e: Exception) {
-            throw MediaDownloadException(cause = e)
+            throw PostContentUrlAcquiringException(cause = e)
         }
     }
 
@@ -147,6 +185,8 @@ class RedditPostHandler(
                 .getJSONObject("data")
         )
 
+    private fun selectDownloaderForMediaType(mediaContentType: MediaContentType): MediaDownloader =
+        downloaders[mediaContentType] ?: error("No downloader for type $mediaContentType")
 
     fun selectPostProcessor(redditPost: RedditPost): PostProcessor {
         val suitableProcessors = mutableSetOf<PostProcessor>()

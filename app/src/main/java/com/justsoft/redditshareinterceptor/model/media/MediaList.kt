@@ -4,7 +4,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import java.util.function.UnaryOperator
 
-class MediaList(private val listMediaContentType: MediaContentType) : ArrayList<MediaModel>() {
+class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaModel>() {
 
     private fun checkElementContentType(element: MediaModel) {
         if (element.mediaType != listMediaContentType)

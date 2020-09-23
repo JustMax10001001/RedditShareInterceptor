@@ -59,3 +59,8 @@ class PostContentUrlAcquiringException(
     message: String = "Unable to get post content url.",
     cause: Throwable? = null
 ): PostProcessingException(message, cause)
+
+class MediaFilterException(
+    message: String = "Unable to filter through media available for download",
+    cause: Throwable? = null
+): PostProcessingException(message, cause)
