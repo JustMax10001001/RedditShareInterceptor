@@ -1,9 +1,11 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
-import android.os.ParcelFileDescriptor
 import com.justsoft.redditshareinterceptor.model.RedditPost
-import com.justsoft.redditshareinterceptor.model.media.*
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaModel
+import com.justsoft.redditshareinterceptor.model.media.mediaListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -49,26 +51,16 @@ class RedditVideoPostProcessor : PostProcessor {
         return contentType
     }
 
-    override fun downloadMediaMatchingMediaSpec(
+    override fun getAllPossibleMediaModels(
         redditPost: RedditPost,
         savedState: Bundle,
-        requestHelper: RequestHelper,
-        mediaSpec: MediaSpec,
-        destinationDescriptorGenerator: (MediaContentType, Int) -> ParcelFileDescriptor
+        requestHelper: RequestHelper
     ): MediaList {
         val urls = savedState.getStringArray(BUNDLE_URLS)
             ?: throw IllegalStateException("savedState does not contain $BUNDLE_URLS key")
         val isGif = savedState.getBoolean(BUNDLE_IS_GIF)
-        val bestFile = generateMediaList(isGif, urls, requestHelper).getMostSuitableMedia(mediaSpec)
 
-        requestHelper.downloadFile(
-            bestFile[0].downloadUrl,
-            destinationDescriptorGenerator(
-                if (isGif) MediaContentType.GIF else MediaContentType.VIDEO,
-                0
-            )
-        )
-        return bestFile
+        return generateMediaList(isGif, urls, requestHelper)
     }
 
     private fun generateMediaList(
