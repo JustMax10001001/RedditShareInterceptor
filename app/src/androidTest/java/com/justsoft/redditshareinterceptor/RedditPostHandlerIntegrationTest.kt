@@ -6,7 +6,7 @@ import android.os.ParcelFileDescriptor
 import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.volley.toolbox.Volley
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import org.junit.Assert.assertEquals
 import org.junit.Before
@@ -79,7 +79,7 @@ class RedditPostHandlerIntegrationTest {
         targetFile.delete()
 
         postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") { contentType, _ ->
-            assertEquals(MediaContentType.VIDEO, contentType)
+            assertEquals(ContentType.VIDEO, contentType)
             openFileDescriptor(context, targetFileUri)
         }
 
@@ -96,7 +96,7 @@ class RedditPostHandlerIntegrationTest {
         targetFile.delete()
 
         postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") { contentType, index ->
-            assertEquals(MediaContentType.IMAGE, contentType)
+            assertEquals(ContentType.IMAGE, contentType)
             assertEquals(0, index)
             openFileDescriptor(context, targetFileUri)
         }
@@ -113,7 +113,7 @@ class RedditPostHandlerIntegrationTest {
         val targetFileUris = mutableListOf<Uri>()
 
         postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/"){ contentType, index ->
-            assertEquals(MediaContentType.GALLERY, contentType)
+            assertEquals(ContentType.GALLERY, contentType)
 
             targetFiles.add(File(context.filesDir, "test_$index.jpg"))
             targetFiles[index].delete()
