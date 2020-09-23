@@ -99,6 +99,14 @@ class UniversalUrlProcessor(
         }
     }
 
+    fun error(onError: (Throwable) -> Unit) {
+        this.onError = onError
+    }
+
+    fun result(onResult: (ProcessingResult) -> Unit) {
+        this.onUrlProcessed = onResult
+    }
+
     companion object {
         private const val LOG_TAG = "UUrlProcessor"
     }

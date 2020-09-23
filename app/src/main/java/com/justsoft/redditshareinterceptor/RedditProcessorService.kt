@@ -5,17 +5,16 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Handler
 import android.os.Looper
-import android.os.ParcelFileDescriptor
 import android.util.Log
 import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
+import java.io.OutputStream
 
 const val ACTION_PROCESS_REDDIT_URL =
     "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"
@@ -24,10 +23,11 @@ class RedditProcessorService : JobIntentService() {
 
     private val mHandler = Handler(Looper.getMainLooper())
 
-    private val mRedditPostHandler: RedditPostHandler by lazy {
-        RedditPostHandler(
+    private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
+        UniversalUrlProcessor(
             VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
-            this::createFileDescriptor
+            this::getUriForContentType,
+            this::openStreamForUri
         )
     }
 
@@ -38,7 +38,7 @@ class RedditProcessorService : JobIntentService() {
             ACTION_PROCESS_REDDIT_URL -> {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
                 FirebaseCrashlytics.getInstance().setCustomKey("url", url)
-                mRedditPostHandler.handlePostUrl(url)
+                mUniversalUrlProcessor.handleUrl(url)
             }
         }
     }
@@ -46,34 +46,35 @@ class RedditProcessorService : JobIntentService() {
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate()")
-        mRedditPostHandler.error {
+        mUniversalUrlProcessor.error {
             Log.e(LOG_TAG, "Error processing post", it)
             FirebaseCrashlytics.getInstance().recordException(it)
 
             mHandler.post {
                 Toast.makeText(
                     applicationContext,
-                    "Error processing reddit post: ${it.message}",
+                    "Error processing post: ${it.message}",
                     Toast.LENGTH_LONG
                 ).show()
             }
         }
-        mRedditPostHandler.mediaSuccess { contentType, redditPost, imageCount ->
+        mUniversalUrlProcessor.result { processingResult ->
             mHandler.post {
                 startActivity(
-                    when (contentType) {
+                    when (processingResult.contentType) {
                         MediaContentType.GALLERY -> prepareMediaMultipleIntent(
-                            contentType,
-                            redditPost,
-                            imageCount
+                            processingResult.caption,
+                            processingResult.mediaUris
                         )
-                        else -> prepareMediaIntent(contentType, redditPost)
+                        MediaContentType.TEXT -> prepareTextIntent(processingResult.caption)
+                        else -> prepareMediaIntent(
+                            processingResult.caption,
+                            processingResult.contentType,
+                            processingResult.mediaUris.first()
+                        )
                     }
                 )
             }
-        }
-        mRedditPostHandler.textSuccess { redditPost, caption ->
-            mHandler.post { startActivity(prepareTextIntent(redditPost, caption)) }
         }
     }
 
@@ -84,41 +85,33 @@ class RedditProcessorService : JobIntentService() {
     // INTENT CREATION
 
     private fun prepareMediaMultipleIntent(
-        mediaContentType: MediaContentType,
-        redditPost: RedditPost,
-        imageCount: Int
+        caption: String,
+        uris: List<Uri>
     ): Intent {
         return prepareIntent(
-            getMimeForContentType(mediaContentType),
-            "${redditPost.subreddit}\r\n${redditPost.title}"
+            getMimeForContentType(MediaContentType.GALLERY),
+            caption
         ).apply {
             action = Intent.ACTION_SEND_MULTIPLE
 
-            val uriList = ArrayList<Uri>()
-            for (i in 0 until imageCount)
-                uriList.add(getInternalFileUri(getFileNameForContentType(mediaContentType, i)))
-
-            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uriList)
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
         }
     }
 
-    private fun prepareTextIntent(redditPost: RedditPost, caption: String): Intent =
+    private fun prepareTextIntent(caption: String): Intent =
         prepareIntent(
-            "text/*",
+            "text/plain",
             caption
         )
 
     private fun prepareMediaIntent(
+        caption: String,
         mediaContentType: MediaContentType,
-        redditPost: RedditPost
+        mediaUri: Uri
     ): Intent =
         prepareIntent(
-            getMimeForContentType(mediaContentType),
-            "${redditPost.subreddit}\r\n${redditPost.title}"
-        ).putExtra(
-            Intent.EXTRA_STREAM,
-            getInternalFileUri(getFileNameForContentType(mediaContentType))
-        )
+            getMimeForContentType(mediaContentType), caption
+        ).putExtra(Intent.EXTRA_STREAM, mediaUri)
 
     private fun prepareIntent(mimeType: String, extraText: String): Intent =
         Intent().apply {
@@ -135,15 +128,12 @@ class RedditProcessorService : JobIntentService() {
 
     // UTILITY METHODS
 
-    private fun createFileDescriptor(
-        mediaContentType: MediaContentType,
-        mediaIndex: Int
-    ): ParcelFileDescriptor =
+    private fun openStreamForUri(uri: Uri): OutputStream =
+        contentResolver.openOutputStream(uri)!!
 
-        contentResolver.openFileDescriptor(
-            getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex)),
-            "w"
-        )!!
+    private fun getUriForContentType(mediaContentType: MediaContentType, mediaIndex: Int): Uri =
+        getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex))
+
 
     private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
