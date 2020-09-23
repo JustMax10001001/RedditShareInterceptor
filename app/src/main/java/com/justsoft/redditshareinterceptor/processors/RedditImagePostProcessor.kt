@@ -11,7 +11,8 @@ import kotlinx.coroutines.runBlocking
 class RedditImagePostProcessor : PostProcessor {
 
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
-        redditPost.url.contains("i.redd.it")
+        redditPost.url.contains("i.redd.it") ||
+                redditPost.url.contains("i.imgur.com")
 
 
     override fun getPostContentType(
