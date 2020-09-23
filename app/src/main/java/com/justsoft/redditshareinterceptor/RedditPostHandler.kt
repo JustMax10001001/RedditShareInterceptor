@@ -18,27 +18,22 @@ class RedditPostHandler(
     private val createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor
 ) {
 
-    private val postProcessors = mutableListOf<PostProcessor>()
+    private val postProcessors: List<PostProcessor> = listOf(
+        RedditImagePostProcessor(),
+        //ImgurImageProcessor(),
+        GfycatPostProcessor(),
+        RedditVideoPostProcessor(),
+        RedditTextPostProcessor(),
+        RedGifsPostProcessor(),
+        RedditGalleryPostProcessor(),
+        StreamablePostProcessor(),
+        RedditTwitterPostProcessor()
+    )
+
 
     private var onMediaDownloaded: (MediaContentType, RedditPost, Int) -> Unit = { _, _, _ -> }
     private var onTextPost: (RedditPost, String) -> Unit = { _, _ -> }
     private var onError: (Throwable) -> Unit = { }
-
-    init {
-        postProcessors.addAll(
-            listOf(
-                RedditImagePostProcessor(),
-                //ImgurImageProcessor(),
-                GfycatPostProcessor(),
-                RedditVideoPostProcessor(),
-                RedditTextPostProcessor(),
-                RedGifsPostProcessor(),
-                RedditGalleryPostProcessor(),
-                StreamablePostProcessor(),
-                RedditTwitterPostProcessor()
-            )
-        )
-    }
 
     fun extractSimpleUrl(url: String): String {
         val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)")
