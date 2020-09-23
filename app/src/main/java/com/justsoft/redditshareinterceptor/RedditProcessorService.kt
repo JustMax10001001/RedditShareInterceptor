@@ -139,7 +139,6 @@ class RedditProcessorService : JobIntentService() {
         mediaContentType: MediaContentType,
         mediaIndex: Int
     ): ParcelFileDescriptor =
-
         contentResolver.openFileDescriptor(
             getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex)),
             "w"

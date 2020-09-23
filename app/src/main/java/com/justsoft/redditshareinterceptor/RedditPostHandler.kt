@@ -112,6 +112,17 @@ class RedditPostHandler(
         )[0].caption
     }
 
+    private fun downloadMedia(
+        filteredMediaList: MediaList
+    ): Int {
+        return try {
+            selectDownloaderForMediaType(filteredMediaList.listMediaContentType)
+                .downloadMedia(filteredMediaList, requestHelper, createDestinationFileDescriptor)
+        }catch (e: Exception) {
+            throw MediaDownloadException(cause = e)
+        }
+    }
+
     private fun filterMedia(
         unfilteredMediaList: MediaList,
         filterSpec: MediaSpec
