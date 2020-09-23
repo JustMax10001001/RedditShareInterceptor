@@ -1,8 +1,9 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
-import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import org.jsoup.Jsoup
 
@@ -14,13 +15,13 @@ class GfycatPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): ContentType = ContentType.VIDEO
+    ): MediaContentType = MediaContentType.VIDEO
 
-    override fun getMediaDownloadUrl(
+    override fun getAllPossibleMediaDownloads(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): String {
+    ): MediaList {
         val htmlDoc = Jsoup.connect(
             redditPost.url
         ).get()
