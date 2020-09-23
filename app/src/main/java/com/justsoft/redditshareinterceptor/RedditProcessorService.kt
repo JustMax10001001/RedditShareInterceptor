@@ -25,7 +25,10 @@ class RedditProcessorService : JobIntentService() {
     private val mHandler = Handler(Looper.getMainLooper())
 
     private val mRedditPostHandler: RedditPostHandler by lazy {
-        RedditPostHandler(VolleyRequestHelper(Volley.newRequestQueue(applicationContext)))
+        RedditPostHandler(
+            VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
+            this::createFileDescriptor
+        )
     }
 
     override fun onHandleWork(intent: Intent) {
@@ -35,7 +38,7 @@ class RedditProcessorService : JobIntentService() {
             ACTION_PROCESS_REDDIT_URL -> {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
                 FirebaseCrashlytics.getInstance().setCustomKey("url", url)
-                mRedditPostHandler.handlePostUrl(url, this::createFileDescriptor)
+                mRedditPostHandler.handlePostUrl(url)
             }
         }
     }
@@ -107,11 +110,17 @@ class RedditProcessorService : JobIntentService() {
                     "\r\n${redditPost.selftext}"
         )
 
-    private fun prepareMediaIntent(mediaContentType: MediaContentType, redditPost: RedditPost): Intent =
+    private fun prepareMediaIntent(
+        mediaContentType: MediaContentType,
+        redditPost: RedditPost
+    ): Intent =
         prepareIntent(
             getMimeForContentType(mediaContentType),
             "${redditPost.subreddit}\r\n${redditPost.title}"
-        ).putExtra(Intent.EXTRA_STREAM, getInternalFileUri(getFileNameForContentType(mediaContentType)))
+        ).putExtra(
+            Intent.EXTRA_STREAM,
+            getInternalFileUri(getFileNameForContentType(mediaContentType))
+        )
 
     private fun prepareIntent(mimeType: String, extraText: String): Intent =
         Intent().apply {
@@ -145,7 +154,10 @@ class RedditProcessorService : JobIntentService() {
         )
     }
 
-    private fun getFileNameForContentType(mediaContentType: MediaContentType, index: Int = 0): String =
+    private fun getFileNameForContentType(
+        mediaContentType: MediaContentType,
+        index: Int = 0
+    ): String =
         (contentTypeToFileNameMap[mediaContentType]
             ?: error("No such key: $mediaContentType in Filename map")).format(index)
 
