@@ -27,7 +27,12 @@ class RedditTwitterPostProcessor : PostProcessor {
         MediaModel(
             redditPost.url,
             MediaContentType.TEXT,
-            caption = "${redditPost.subreddit}\r\n${redditPost.title}\r\n${redditPost.url}"
         )
     )
+
+    override fun getPostCaption(
+        redditPost: RedditPost,
+        savedState: Bundle,
+        requestHelper: RequestHelper
+    ): String = "${redditPost.subreddit}\r\n${redditPost.title}\r\n${redditPost.url}"
 }
