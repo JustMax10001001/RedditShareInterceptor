@@ -49,6 +49,30 @@ class UniversalUrlProcessor(
 
         val filteredMediaList = filterMedia(unfilteredMediaList, MediaSpec())
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
+
+        val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
+            downloadMedia(filteredMediaList)
+        } else {
+            emptyList()
+        }
+        if(uris.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
+        val result = ProcessingResult(
+            filteredMediaList.listMediaContentType,
+            filteredMediaList.caption,
+            uris
+        )
+        onUrlProcessed(result)
+    }
+
+    private fun downloadMedia(
+        filteredMediaList: MediaList
+    ): List<Uri> {
+        return try {
+            downloader.downloadMediaList(filteredMediaList)
+        } catch (e: Exception) {
+            throw MediaDownloadException(cause = e)
+        }
     }
 
     private fun filterMedia(
