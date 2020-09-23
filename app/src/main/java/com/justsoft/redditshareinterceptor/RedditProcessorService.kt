@@ -12,6 +12,7 @@ import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
 import java.io.OutputStream
@@ -46,6 +47,7 @@ class RedditProcessorService : JobIntentService() {
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate()")
+        FirebaseAnalyticsHelper.getInstance(this)
         mUniversalUrlProcessor.error {
             Log.e(LOG_TAG, "Error processing post", it)
             FirebaseCrashlytics.getInstance().recordException(it)
