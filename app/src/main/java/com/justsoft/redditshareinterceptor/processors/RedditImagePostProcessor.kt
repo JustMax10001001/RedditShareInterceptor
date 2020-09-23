@@ -29,14 +29,9 @@ class RedditImagePostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
-        val image = getMediaList(redditPost, requestHelper)
-        requestHelper.downloadFile(
-            image[0].downloadUrl,
-            destinationDescriptorGenerator(MediaContentType.IMAGE, 0)
-        )
-        return image
-    }
+    ): MediaList =
+        getMediaList(redditPost, requestHelper)
+
 
     private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
         return mediaListOf(MediaContentType.IMAGE).apply {

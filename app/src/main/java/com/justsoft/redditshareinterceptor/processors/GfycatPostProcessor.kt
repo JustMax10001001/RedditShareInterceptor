@@ -48,13 +48,7 @@ class GfycatPostProcessor : PostProcessor {
                 )
             )
         }
-
-        val bestMedia = allMediaList.getMostSuitableMedia(mediaSpec)
-        requestHelper.downloadFile(
-            bestMedia[0].downloadUrl,
-            destinationDescriptorGenerator(MediaContentType.VIDEO, 0)
-        )
-        return bestMedia
+        return allMediaList
     }
 
     private fun getGfycatId(sourceUrl: String): String {

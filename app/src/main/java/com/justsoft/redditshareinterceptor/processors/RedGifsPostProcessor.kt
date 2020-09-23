@@ -12,7 +12,7 @@ import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import java.util.stream.Collectors
 
-class RedGifsPostProcessor: PostProcessor {
+class RedGifsPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
         redditPost.url.contains("redgifs.com")
 
@@ -26,17 +26,13 @@ class RedGifsPostProcessor: PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
-        val videos = getPossibleDownloads(redditPost, requestHelper)
-        val bestVideos = videos.getMostSuitableMedia(mediaSpec)
-        requestHelper.downloadFile(
-            bestVideos[0].downloadUrl,
-            destinationDescriptorGenerator(MediaContentType.VIDEO, 0)
-        )
-        return bestVideos
-    }
+    ): MediaList = getPossibleDownloads(redditPost, requestHelper)
 
-    private fun getPossibleDownloads(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
+
+    private fun getPossibleDownloads(
+        redditPost: RedditPost,
+        requestHelper: RequestHelper
+    ): MediaList {
         val htmlDoc = Jsoup.connect(
             redditPost.url
         ).get()
