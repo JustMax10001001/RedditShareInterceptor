@@ -82,7 +82,7 @@ class RedditVideoPostProcessor : PostProcessor {
             for (url in directUrls)
                 launch {
                     list.add(
-                        MediaModel(url, requestHelper.getContentLength(url), contentType)
+                        MediaModel(url, contentType, requestHelper.getContentLength(url))
                     )
                 }
         }

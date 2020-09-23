@@ -28,7 +28,7 @@ class RedditPostHandler(
         postProcessors.addAll(
             listOf(
                 RedditImagePostProcessor(),
-                ImgurImageProcessor(),
+                //ImgurImageProcessor(),
                 GfycatPostProcessor(),
                 RedditVideoPostProcessor(),
                 TextPostProcessor(),
@@ -146,7 +146,7 @@ class RedditPostHandler(
             }
         }
         when (suitableProcessors.size) {
-            0 -> throw  NoSuitableProcessorException()
+            0 -> throw  NoSuitableProcessorException("Post url is ${redditPost.url}")
             1 -> return suitableProcessors.first()
             else -> throw MultipleSuitableProcessorsExceptions(processors = suitableProcessors)
         }

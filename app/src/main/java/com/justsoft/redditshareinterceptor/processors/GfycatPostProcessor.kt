@@ -43,8 +43,8 @@ class GfycatPostProcessor : PostProcessor {
             allMediaList.add(
                 MediaModel(
                     mediaObj.getString("url"),
-                    mediaObj.getLong("size"),
-                    MediaContentType.VIDEO
+                    MediaContentType.VIDEO,
+                    mediaObj.getLong("size")
                 )
             )
         }

@@ -43,7 +43,7 @@ class RedditGalleryPostProcessor : PostProcessor {
         return mediaListOf(MediaContentType.IMAGE).apply {
             runBlocking(Dispatchers.IO) {
                 redditPost.galleryImageUrls.forEach {
-                    add(MediaModel(it, requestHelper.getContentLength(it), MediaContentType.IMAGE))
+                    add(MediaModel(it, MediaContentType.IMAGE, requestHelper.getContentLength(it)))
                 }
             }
         }

@@ -54,7 +54,7 @@ class RedGifsPostProcessor: PostProcessor {
             urls.forEach {
                 launch {
                     availableDownloads.add(
-                        MediaModel(it, requestHelper.getContentLength(it), MediaContentType.VIDEO)
+                        MediaModel(it, MediaContentType.VIDEO, requestHelper.getContentLength(it))
                     )
                 }
             }

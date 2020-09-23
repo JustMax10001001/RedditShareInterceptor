@@ -6,10 +6,10 @@ import org.junit.Test
 class MediaListTest {
 
     private fun mockVideoMedia(size: Long) =
-        MediaModel("mock://vid.eo", size, MediaContentType.VIDEO)
+        MediaModel("mock://vid.eo", MediaContentType.VIDEO, size)
 
     private fun mockImagesForGalleryIndex(index: Int, sizes: Sequence<Long>): Sequence<MediaModel> =
-        sizes.map { MediaModel("mock://galle.ry", it, MediaContentType.GALLERY, index) }
+        sizes.map { MediaModel("mock://galle.ry", MediaContentType.GALLERY, it, index) }
 
     private fun mockGallery(): Sequence<MediaModel> {
         val sizeSequence = generateSequence(6.toLong()) { it + 5 }

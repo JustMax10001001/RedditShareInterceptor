@@ -23,5 +23,5 @@ class TextPostProcessor : PostProcessor {
         requestHelper: RequestHelper,
         mediaSpec: MediaSpec,
         destinationDescriptorGenerator: (MediaContentType, Int) -> ParcelFileDescriptor
-    ): MediaList = mediaListOf(MediaModel(redditPost.url, 0, MediaContentType.TEXT))
+    ): MediaList = mediaListOf(MediaModel(redditPost.url, MediaContentType.TEXT, 0))
 }
