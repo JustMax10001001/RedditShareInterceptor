@@ -8,6 +8,7 @@ import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.model.media.MediaModel
 import com.justsoft.redditshareinterceptor.model.media.MediaSpec
 import com.justsoft.redditshareinterceptor.util.RequestHelper
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
@@ -49,7 +50,7 @@ class RedGifsPostProcessor: PostProcessor {
             .map { it.attr("src") }
             .collect(Collectors.toList())
         val availableDownloads = MediaList(MediaContentType.VIDEO)
-        runBlocking {
+        runBlocking(Dispatchers.IO) {
             urls.forEach {
                 launch {
                     availableDownloads.add(
