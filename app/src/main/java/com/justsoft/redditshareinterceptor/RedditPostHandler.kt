@@ -4,8 +4,8 @@ import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
-import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.processors.RedditGalleryPostProcessor.Companion.KEY_GET_URL_OF_IMAGE_INDEX
 import com.justsoft.redditshareinterceptor.processors.RedditGalleryPostProcessor.Companion.KEY_IMAGES_COUNT
@@ -21,7 +21,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
     private val postProcessors = mutableListOf<PostProcessor>()
 
-    private var onMediaDownloaded: (ContentType, RedditPost, Int) -> Unit = { _, _, _ -> }
+    private var onMediaDownloaded: (MediaContentType, RedditPost, Int) -> Unit = { _, _, _ -> }
     private var onTextPost: (RedditPost) -> Unit = { }
     private var onError: (Throwable) -> Unit = { }
 
@@ -47,7 +47,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
     fun handlePostUrl(
         dirtyUrl: String,
-        createDestinationFileDescriptor: (ContentType, Int) -> ParcelFileDescriptor
+        createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor
     ) {
         val postUrl = extractSimpleUrl(dirtyUrl)
 
@@ -65,7 +65,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
 
     private fun getAndProcessRedditPost(
         cleanUrl: String,
-        createDestinationFileDescriptor: (ContentType, Int) -> ParcelFileDescriptor
+        createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor
     ) {
         val postObject = getRedditPostObj(cleanUrl)
 
@@ -85,7 +85,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         }
 
         when (postContentType) {
-            ContentType.GALLERY -> {
+            MediaContentType.GALLERY -> {
                 val count = processMediaMultiple(
                     postProcessor,
                     postObject,
@@ -95,7 +95,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
                 )
                 onMediaDownloaded(postContentType, postObject, count)
             }
-            ContentType.TEXT -> onTextPost(postObject)
+            MediaContentType.TEXT -> onTextPost(postObject)
             else -> {
                 processMediaSingle(
                     postProcessor,
@@ -114,8 +114,8 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         postProcessor: PostProcessor,
         postObject: RedditPost,
         postProcessorBundle: Bundle,
-        createDestinationFileDescriptor: (ContentType, Int) -> ParcelFileDescriptor,
-        postContentType: ContentType
+        createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor,
+        postMediaContentType: MediaContentType
     ): Int {
         val imageCount = postProcessorBundle.getInt(KEY_IMAGES_COUNT)
         runBlocking {
@@ -124,7 +124,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
                 val postMediaUrl =
                     getMediaFileDownloadUrl(postProcessor, postObject, postProcessorBundle)
                 val fileDescriptor =
-                    createMediaFileDescriptor(createDestinationFileDescriptor, postContentType, i)
+                    createMediaFileDescriptor(createDestinationFileDescriptor, postMediaContentType, i)
                 launch(Dispatchers.IO) {
                     Log.d(LOG_TAG, "Image ${i + 1}'s media download url is $postMediaUrl")
                     downloadMedia(postMediaUrl, fileDescriptor)
@@ -139,15 +139,15 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         postProcessor: PostProcessor,
         postObject: RedditPost,
         postProcessorBundle: Bundle,
-        createDestinationFileDescriptor: (ContentType, Int) -> ParcelFileDescriptor,
-        postContentType: ContentType
+        createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor,
+        postMediaContentType: MediaContentType
     ) {
         val postMediaUrl =
             getMediaFileDownloadUrl(postProcessor, postObject, postProcessorBundle)
         Log.d(LOG_TAG, "Post media download url is $postMediaUrl")
 
         val fileDescriptor =
-            createMediaFileDescriptor(createDestinationFileDescriptor, postContentType)
+            createMediaFileDescriptor(createDestinationFileDescriptor, postMediaContentType)
         downloadMedia(postMediaUrl, fileDescriptor)
         Log.d(LOG_TAG, "Post media successfully downloaded")
     }
@@ -156,7 +156,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         postProcessor: PostProcessor,
         postObject: RedditPost,
         postProcessorBundle: Bundle
-    ): ContentType {
+    ): MediaContentType {
         return try {
             postProcessor.getPostContentType(
                 postObject, postProcessorBundle, requestHelper
@@ -172,7 +172,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         postProcessorBundle: Bundle
     ): String {
         return try {
-            postProcessor.getMediaDownloadUrl(
+            postProcessor.getAllPossibleMediaDownloads(
                 postObject, postProcessorBundle, requestHelper
             )
         } catch (e: Exception) {
@@ -181,12 +181,12 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
     }
 
     private fun createMediaFileDescriptor(
-        createDestinationFileDescriptor: (ContentType, Int) -> ParcelFileDescriptor,
-        postContentType: ContentType,
+        createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor,
+        postMediaContentType: MediaContentType,
         mediaIndex: Int = 0
     ): ParcelFileDescriptor {
         return try {
-            createDestinationFileDescriptor(postContentType, mediaIndex)
+            createDestinationFileDescriptor(postMediaContentType, mediaIndex)
         } catch (e: Exception) {
             throw DescriptorCreationException(cause = e)
         }
@@ -203,7 +203,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         }
     }
 
-    fun mediaSuccess(onMediaDownloaded: (ContentType, RedditPost, Int) -> Unit) {
+    fun mediaSuccess(onMediaDownloaded: (MediaContentType, RedditPost, Int) -> Unit) {
         this.onMediaDownloaded = onMediaDownloaded
     }
 
