@@ -72,7 +72,7 @@ class RedditPostHandler(
         Log.d(LOG_TAG, "Post content type is $postContentType")
         FirebaseAnalyticsHelper.getInstance().logEvent("get_media_type") {
             param("clean_url", cleanUrl)
-            param("processor_name", postContentType.toString())
+            param("content_type", postContentType.toString())
         }
 
         if (postContentType != MediaContentType.TEXT) {
