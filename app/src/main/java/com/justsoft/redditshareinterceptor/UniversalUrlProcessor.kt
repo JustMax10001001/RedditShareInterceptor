@@ -1,19 +1,25 @@
 package com.justsoft.redditshareinterceptor
 
-import android.os.ParcelFileDescriptor
+import android.net.Uri
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
-    createDestinationFileDescriptor: (MediaContentType, Int) -> ParcelFileDescriptor
+    createUri: (MediaContentType, Int) -> Uri,
+    openOutputStream: (Uri) -> OutputStream
 ) {
 
-    private val downloader = UniversalMediaDownloader(requestHelper, createDestinationFileDescriptor)
+    private var onUrlProcessed: (ProcessingResult) -> Unit = { }
+    private var onError: (Throwable) -> Unit = { }
+
+    private val downloader = UniversalMediaDownloader(requestHelper, createUri, openOutputStream)
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -25,6 +31,8 @@ class UniversalUrlProcessor(
             param("url", url)
             param("handler_name", urlHandler.javaClass.simpleName)
         }
+
+        val unfilteredMediaList = urlHandler.processUrlAndGetMedia(url, requestHelper)
     }
 
     private fun selectUrlHandler(url: String): UrlHandler {

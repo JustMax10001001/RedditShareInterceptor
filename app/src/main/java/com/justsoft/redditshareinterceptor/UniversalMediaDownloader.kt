@@ -1,19 +1,21 @@
 package com.justsoft.redditshareinterceptor
 
-import android.os.ParcelFileDescriptor
+import android.net.Uri
 import com.justsoft.redditshareinterceptor.downloaders.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
+import java.io.OutputStream
 
 class UniversalMediaDownloader(
     private val requestHelper: RequestHelper,
-    private val destinationDescriptorGenerator: (MediaContentType, Int) -> ParcelFileDescriptor
+    private val destinationUriCallback: (MediaContentType, Int) -> Uri,
+    private val outputStreamCallback: (Uri) -> OutputStream
 ) {
 
-    fun downloadMediaList(mediaList: MediaList): Int {
+    fun downloadMediaList(mediaList: MediaList): List<Uri> {
         return selectDownloaderForMediaType(mediaList.listMediaContentType)
-                 .downloadMedia(mediaList, requestHelper, destinationDescriptorGenerator)
+                 .downloadMedia(mediaList, requestHelper, destinationUriCallback, outputStreamCallback)
     }
 
     private fun selectDownloaderForMediaType(mediaContentType: MediaContentType): MediaDownloader =
