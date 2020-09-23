@@ -1,10 +1,12 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import com.justsoft.redditshareinterceptor.model.RedditPost
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.util.RequestHelper
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
 
 class RedditGalleryPostProcessor : PostProcessor {
 
@@ -15,26 +17,40 @@ class RedditGalleryPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaContentType {
-        savedState.putInt(KEY_IMAGES_COUNT, redditPost.galleryImageUrls.size)
-        return MediaContentType.GALLERY
-    }
+    ): MediaContentType =
+        MediaContentType.GALLERY
 
-    override fun getAllPossibleMediaDownloads(
+    override fun downloadMediaMatchingMediaSpec(
         redditPost: RedditPost,
         savedState: Bundle,
-        requestHelper: RequestHelper
+        requestHelper: RequestHelper,
+        mediaSpec: MediaSpec,
+        destinationDescriptorGenerator: (MediaContentType, Int) -> ParcelFileDescriptor
     ): MediaList {
-        val imageIndex = savedState.getInt(KEY_GET_URL_OF_IMAGE_INDEX, -1)
-        if (imageIndex < 0 || imageIndex >= redditPost.galleryImageUrls.size)
-            throw IllegalArgumentException("savedState[$KEY_GET_URL_OF_IMAGE_INDEX] is not set, " +
-                    "less then zero or bigger than number of images!")
+        val galleryImages = getMediaList(redditPost, requestHelper).getMostSuitableMedia(mediaSpec)
+        runBlocking(Dispatchers.IO) {
+            for (i in 0 until galleryImages.count()) {
+                requestHelper.downloadFile(
+                    galleryImages[i].downloadUrl,
+                    destinationDescriptorGenerator(MediaContentType.GALLERY, i)
+                )
+            }
+        }
+        return galleryImages
+    }
 
-        return redditPost.galleryImageUrls[imageIndex]
+    private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
+        return mediaListOf(MediaContentType.IMAGE).apply {
+            runBlocking(Dispatchers.IO) {
+                redditPost.galleryImageUrls.forEach {
+                    add(MediaModel(it, requestHelper.getContentLength(it), MediaContentType.IMAGE))
+                }
+            }
+        }
     }
 
     companion object {
-        const val KEY_IMAGES_COUNT = "images_count"
-        const val KEY_GET_URL_OF_IMAGE_INDEX = "image_index"
+        //const val KEY_IMAGES_COUNT = "images_count"
+        //const val KEY_GET_URL_OF_IMAGE_INDEX = "image_index"
     }
 }

@@ -40,7 +40,7 @@ class RedditImagePostProcessor : PostProcessor {
     private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
         return mediaListOf(MediaContentType.IMAGE).apply {
             runBlocking(Dispatchers.IO) {
-                redditPost.galleryImageUrls.forEach {
+                redditPost.previewImages.forEach {
                     add(MediaModel(it, requestHelper.getContentLength(it), MediaContentType.IMAGE))
                 }
             }
