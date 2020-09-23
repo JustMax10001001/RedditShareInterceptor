@@ -147,7 +147,7 @@ class RedditProcessorService : JobIntentService() {
     private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
             this,
-            "com.justsoft.redditshareinterceptor.provider",
+            getString(R.string.provider_name),
             File(filesDir, file)
         )
     }
