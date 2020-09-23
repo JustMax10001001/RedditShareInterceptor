@@ -30,14 +30,15 @@ class UniversalUrlProcessor(
 
     fun handleUrl(url: String) {
         Log.d(LOG_TAG, "Starting url processing")
-        try {
+        val result = try {
             startUrlProcessing(url)
         } catch (e: Exception) {
-            onError(e)
+            return onError(e)
         }
+        onUrlProcessed(result)
     }
 
-    private fun startUrlProcessing(url: String) {
+    private fun startUrlProcessing(url: String): ProcessingResult {
         val urlHandler = selectUrlHandler(url)
         FirebaseAnalyticsHelper.getInstance().logEvent("select_url_handler") {
             param("url", url)
@@ -57,12 +58,12 @@ class UniversalUrlProcessor(
         }
         if(uris.isNotEmpty())
             Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
-        val result = ProcessingResult(
+
+        return ProcessingResult(
             filteredMediaList.listMediaContentType,
             filteredMediaList.caption,
             uris
         )
-        onUrlProcessed(result)
     }
 
     private fun downloadMedia(
