@@ -1,7 +1,6 @@
 package com.justsoft.redditshareinterceptor.model
 
 import org.json.JSONObject
-import java.util.*
 
 class RedditPost(
     private val postData: JSONObject
@@ -55,11 +54,12 @@ class RedditPost(
         while (keysIterator.hasNext()) {
             val mediaId = keysIterator.next()
             val mediaObj = mediaMetadata.getJSONObject(mediaId)
-            val mimeType = mediaObj.getString("m")
-            var imageType = mimeType.replace("image/", "").toLowerCase(Locale.ROOT)
-            if (imageType == "jpeg")
-                imageType = "jpg"
-            urlList.add("https://i.redd.it/$mediaId.$imageType")
+            urlList.add(mediaObj.getJSONObject("s").getString("u"))     // source
+
+            val resolutions = mediaObj.getJSONArray("p")
+            for (i in 0 until resolutions.length()) {
+                urlList.add(resolutions.getJSONObject(i).getString("u"))
+            }
         }
 
         urlList
