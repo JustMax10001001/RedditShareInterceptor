@@ -51,12 +51,17 @@ class RedditUrlHandler : UrlHandler {
             param("content_type", postContentType.toString())
         }
 
-        return getUnfilteredMedia(
+        val unfilteredMedia = getUnfilteredMedia(
             postProcessor,
             redditPost,
             postProcessorBundle,
             requestHelper
         )
+
+        unfilteredMedia.caption =
+            postProcessor.getPostCaption(redditPost, postProcessorBundle, requestHelper)
+
+        return unfilteredMedia
     }
 
     private fun getUnfilteredMedia(
