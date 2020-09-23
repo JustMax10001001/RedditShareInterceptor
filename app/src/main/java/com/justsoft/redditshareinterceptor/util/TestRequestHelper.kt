@@ -48,4 +48,9 @@ class TestRequestHelper : RequestHelper {
     ): JSONObject {
         return JSONObject(readHttpTextResponse(requestUrl, params))
     }
+
+    override fun getContentLength(requestUrl: String, params: MutableMap<String, String>): Long {
+        //TODO implement header parsing
+        throw NotImplementedError()
+    }
 }
