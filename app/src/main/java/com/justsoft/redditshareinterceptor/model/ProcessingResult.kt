@@ -5,6 +5,6 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 
 class ProcessingResult(
     val contentType: MediaContentType,
-    val caption: String = "",
-    val downloadedFilesUris: List<Uri> = listOf()
+    val caption: String,
+    val mediaUris: List<Uri> = listOf()
 )
