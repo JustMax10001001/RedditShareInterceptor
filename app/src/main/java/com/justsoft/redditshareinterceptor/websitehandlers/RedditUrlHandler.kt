@@ -31,7 +31,7 @@ class RedditUrlHandler : UrlHandler {
     )
 
     override fun isHandlerSuitableForUrl(url: String): Boolean =
-        url.matches(Regex.fromLiteral("https://www\\.reddit\\.com/r/\\w*/comments/\\w+/"))
+        Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
     override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
         val cleanUrl = extractCleanUrl(url)
