@@ -1,9 +1,8 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
+import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
 class RedditGalleryPostProcessor : PostProcessor {
@@ -15,16 +14,16 @@ class RedditGalleryPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaContentType {
+    ): ContentType {
         savedState.putInt(KEY_IMAGES_COUNT, redditPost.galleryImageUrls.size)
-        return MediaContentType.GALLERY
+        return ContentType.GALLERY
     }
 
-    override fun getAllPossibleMediaDownloads(
+    override fun getMediaDownloadUrl(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): String {
         val imageIndex = savedState.getInt(KEY_GET_URL_OF_IMAGE_INDEX, -1)
         if (imageIndex < 0 || imageIndex >= redditPost.galleryImageUrls.size)
             throw IllegalArgumentException("savedState[$KEY_GET_URL_OF_IMAGE_INDEX] is not set, " +

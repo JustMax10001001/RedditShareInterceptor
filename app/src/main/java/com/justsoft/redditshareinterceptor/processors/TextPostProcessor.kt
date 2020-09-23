@@ -1,11 +1,8 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
+import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
 class TextPostProcessor : PostProcessor {
@@ -17,11 +14,11 @@ class TextPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaContentType = MediaContentType.TEXT
+    ): ContentType = ContentType.TEXT
 
-    override fun getAllPossibleMediaDownloads(
+    override fun getMediaDownloadUrl(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList = mediaListOf(MediaContentType.TEXT, MediaModel(redditPost.url, 0, MediaContentType.TEXT))
+    ): String = redditPost.url
 }
