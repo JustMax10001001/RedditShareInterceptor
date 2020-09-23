@@ -35,6 +35,7 @@ open class VolleyMetaRequest : JsonObjectRequest {
                 response.data,
                 Charset.forName(HttpHeaderParser.parseCharset(response.headers, PROTOCOL_CHARSET))
             )
+
             val jsonResponse = JSONObject(jsonString)
             jsonResponse.put("headers", JSONObject(response.headers.toMap()))
             Response.success(
@@ -47,4 +48,6 @@ open class VolleyMetaRequest : JsonObjectRequest {
             Response.error(ParseError(je))
         }
     }
+
+
 }
