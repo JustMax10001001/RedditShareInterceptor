@@ -18,6 +18,11 @@ interface RequestHelper {
         params: MutableMap<String, String> = mutableMapOf()
     ): JSONObject
 
+    fun getContentLength(
+        requestUrl: String,
+        params: MutableMap<String, String> = mutableMapOf()
+    ): Long
+
     fun downloadFile(requestUrl: String, destinationFileDescriptor: ParcelFileDescriptor) {
         val sourceConnection: HttpURLConnection =
             URL(requestUrl).openConnection() as HttpURLConnection
