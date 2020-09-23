@@ -74,7 +74,7 @@ class MediaList(val listMediaContentType: MediaContentType, var caption: String 
 fun mediaListOf(mediaType: MediaContentType, caption: String = ""): MediaList
     = MediaList(mediaType, caption)
 
-fun mediaListOf(contentType: MediaContentType): MediaList = mediaListOf(contentType)
+fun mediaListOf(contentType: MediaContentType): MediaList = mediaListOf(contentType, "")
 
 fun mediaListOf(caption: String, vararg media: MediaModel): MediaList =
     mediaListOf(media[0].mediaType, caption).apply { this.addAll(media) }
