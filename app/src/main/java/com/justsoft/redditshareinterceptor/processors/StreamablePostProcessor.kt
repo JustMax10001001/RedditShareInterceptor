@@ -26,13 +26,7 @@ class StreamablePostProcessor : PostProcessor {
         savedState: Bundle,
         requestHelper: RequestHelper
     ): MediaList {
-        val videos = getPossibleDownloads(requestHelper, redditPost)
-        val bestVideos = videos.getMostSuitableMedia(mediaSpec)
-        requestHelper.downloadFile(
-            bestVideos[0].downloadUrl,
-            destinationDescriptorGenerator(MediaContentType.VIDEO, 0)
-        )
-        return bestVideos
+        return getPossibleDownloads(requestHelper, redditPost)
     }
 
     private fun getPossibleDownloads(
