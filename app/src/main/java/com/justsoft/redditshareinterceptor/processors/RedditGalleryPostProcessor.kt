@@ -48,9 +48,4 @@ class RedditGalleryPostProcessor : PostProcessor {
             }
         }
     }
-
-    companion object {
-        //const val KEY_IMAGES_COUNT = "images_count"
-        //const val KEY_GET_URL_OF_IMAGE_INDEX = "image_index"
-    }
 }
