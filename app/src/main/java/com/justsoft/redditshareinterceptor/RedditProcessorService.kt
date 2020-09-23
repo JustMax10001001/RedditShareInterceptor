@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
+import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
@@ -47,7 +48,10 @@ class RedditProcessorService : JobIntentService() {
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate()")
+        FirebaseApp.initializeApp(applicationContext)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
         FirebaseAnalyticsHelper.getInstance(this)
+
         mUniversalUrlProcessor.error {
             Log.e(LOG_TAG, "Error processing post", it)
             FirebaseCrashlytics.getInstance().recordException(it)
