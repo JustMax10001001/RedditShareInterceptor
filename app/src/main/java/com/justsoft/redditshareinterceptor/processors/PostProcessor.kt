@@ -29,4 +29,10 @@ interface PostProcessor {
         savedState: Bundle,
         requestHelper: RequestHelper
     ): MediaList
+
+    fun getPostCaption(
+        redditPost: RedditPost,
+        savedState: Bundle,
+        requestHelper: RequestHelper
+    ): String = "${redditPost.subreddit}\r\n${redditPost.title}"
 }

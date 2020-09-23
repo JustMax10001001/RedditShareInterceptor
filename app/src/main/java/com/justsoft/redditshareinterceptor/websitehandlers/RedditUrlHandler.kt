@@ -31,7 +31,7 @@ class RedditUrlHandler : UrlHandler {
     )
 
     override fun isHandlerSuitableForUrl(url: String): Boolean =
-        url.matches(Regex.fromLiteral("https://www\\.reddit\\.com/r/\\w*/comments/\\w+/"))
+        Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
     override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
         val cleanUrl = extractCleanUrl(url)
@@ -51,12 +51,17 @@ class RedditUrlHandler : UrlHandler {
             param("content_type", postContentType.toString())
         }
 
-        return getUnfilteredMedia(
+        val unfilteredMedia = getUnfilteredMedia(
             postProcessor,
             redditPost,
             postProcessorBundle,
             requestHelper
         )
+
+        unfilteredMedia.caption =
+            postProcessor.getPostCaption(redditPost, postProcessorBundle, requestHelper)
+
+        return unfilteredMedia
     }
 
     private fun getUnfilteredMedia(
@@ -110,7 +115,7 @@ class RedditUrlHandler : UrlHandler {
         return pattern.matcher(url).apply { this.find() }.group()
     }
 
-    private fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
+    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
         RedditPost(
             JSONArray(requestHelper.readHttpTextResponse("$postUrl.json"))
                 .getJSONObject(0)

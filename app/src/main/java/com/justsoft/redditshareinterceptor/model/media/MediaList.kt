@@ -1,10 +1,8 @@
 package com.justsoft.redditshareinterceptor.model.media
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import java.util.function.UnaryOperator
 
-class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaModel>() {
+class MediaList(val listMediaContentType: MediaContentType, var caption: String = "") : ArrayList<MediaModel>() {
 
     private fun checkElementContentType(element: MediaModel) {
         if (element.mediaType != listMediaContentType)
@@ -14,7 +12,6 @@ class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaMod
             )
     }
 
-    @RequiresApi(Build.VERSION_CODES.N)
     override fun replaceAll(operator: UnaryOperator<MediaModel>) {
         super.replaceAll(operator)
         this.forEach(::checkElementContentType)
@@ -57,8 +54,14 @@ class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaMod
     }
 
     fun getMostSuitableMedia(mediaSpec: MediaSpec = MediaSpec()): MediaList {
+        if (this.isEmpty())
+            throw IllegalStateException("MediaList is empty!")
+
+        if (this.count() == 1)
+            return mediaListOf(this.listMediaContentType, caption).also { addAll(this) }
+
         val sortedList = this.sortedWith(compareBy(MediaModel::index, { -it.size }))
-        return MediaList(listMediaContentType).apply {
+        return MediaList(listMediaContentType, caption).apply {
             addAll(
                 sortedList
                     .groupBy(MediaModel::index)
@@ -68,7 +71,13 @@ class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaMod
     }
 }
 
-fun mediaListOf(contentType: MediaContentType): MediaList = MediaList(contentType)
+fun mediaListOf(mediaType: MediaContentType, caption: String = ""): MediaList
+    = MediaList(mediaType, caption)
+
+fun mediaListOf(contentType: MediaContentType): MediaList = mediaListOf(contentType, "")
+
+fun mediaListOf(caption: String, vararg media: MediaModel): MediaList =
+    mediaListOf(media[0].mediaType, caption).apply { this.addAll(media) }
 
 fun mediaListOf(vararg media: MediaModel): MediaList =
-    MediaList(media[0].mediaType).apply { this.addAll(media) }
+    mediaListOf(media[0].mediaType).apply { this.addAll(media) }
