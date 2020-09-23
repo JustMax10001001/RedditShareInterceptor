@@ -92,12 +92,10 @@ class RedditPostHandler(
         postProcessorBundle: Bundle,
         mediaSpec: MediaSpec = MediaSpec()
     ): String {
-        return postProcessor.downloadMediaMatchingMediaSpec(
+        return postProcessor.getAllPossibleMediaModels(
             postObject,
             postProcessorBundle,
-            requestHelper,
-            mediaSpec,
-            createDestinationFileDescriptor
+            requestHelper
         )[0].caption
     }
 
@@ -108,12 +106,10 @@ class RedditPostHandler(
         mediaSpec: MediaSpec = MediaSpec()
     ): Int {
         return try {
-            postProcessor.downloadMediaMatchingMediaSpec(
+            postProcessor.getAllPossibleMediaModels(
                 postObject,
                 postProcessorBundle,
-                requestHelper,
-                mediaSpec,
-                createDestinationFileDescriptor
+                requestHelper
             ).count()
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
