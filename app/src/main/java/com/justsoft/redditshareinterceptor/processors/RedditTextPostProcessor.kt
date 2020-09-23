@@ -6,7 +6,7 @@ import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
-class TextPostProcessor : PostProcessor {
+class RedditTextPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
         redditPost.url.contains("www.reddit.com") &&
                 !redditPost.url.contains("www.reddit.com/gallery")
@@ -23,5 +23,11 @@ class TextPostProcessor : PostProcessor {
         requestHelper: RequestHelper,
         mediaSpec: MediaSpec,
         destinationDescriptorGenerator: (MediaContentType, Int) -> ParcelFileDescriptor
-    ): MediaList = mediaListOf(MediaModel(redditPost.url, MediaContentType.TEXT, 0))
+    ): MediaList = mediaListOf(
+        MediaModel(
+            redditPost.url,
+            MediaContentType.TEXT,
+            caption = "${redditPost.subreddit}\r\n${redditPost.title}\r\n${redditPost.selftext}"
+        )
+    )
 }

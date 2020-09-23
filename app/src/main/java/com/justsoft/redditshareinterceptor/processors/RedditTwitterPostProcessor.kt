@@ -27,7 +27,7 @@ class RedditTwitterPostProcessor : PostProcessor {
         MediaModel(
             redditPost.url,
             MediaContentType.TEXT,
-            caption = "${redditPost.title}\r\n${redditPost.url}"
+            caption = "${redditPost.subreddit}\r\n${redditPost.title}\r\n${redditPost.url}"
         )
     )
 }
