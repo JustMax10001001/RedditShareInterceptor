@@ -15,6 +15,6 @@ A: The app was tested with official Reddit app and official Telegram client
 ### 2. Q: Which media types are supported?
 A: Photo, multi-image, video, GIF's and plain text posts are supported
 ### 3. Q: How about media which is hosted outside Reddit(e.g. Gfycat)?
-A: The app supports media hosted on Imgur, Gfycat, and Redgifs
+A: The app supports media hosted on Imgur, Gfycat, Streamable and Redgifs
 ### 4. Q: Is audio in videos supported?
 A: Yes, the app uses ripsave.com to to download videos with sound
