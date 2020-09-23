@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor.util
 
 import android.os.ParcelFileDescriptor
+import com.google.firebase.analytics.ktx.logEvent
 import org.json.JSONObject
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
@@ -45,9 +46,12 @@ interface RequestHelper {
             URL(requestUrl).openConnection() as HttpURLConnection
         destinationFileDescriptor.use {
             FileOutputStream(destinationFileDescriptor.fileDescriptor).use { fileOutputStream ->
+                val analytics = FirebaseAnalyticsHelper.getInstance()
                 sourceConnection.inputStream.use { inputStream ->
+                    val downloadStartTime = System.currentTimeMillis()
+                    var downloadSize: Long = 0
                     val buffer = ByteArray(1024 * 1024)
-                    var variableBufferSize = 128 * 1024
+                    var variableBufferSize: Int = 128 * 1024
                     var startTime = System.currentTimeMillis()
                     var bytesRead: Int
                     while (inputStream.read(buffer, 0, variableBufferSize)
@@ -55,6 +59,8 @@ interface RequestHelper {
                     ) {
                         val delta = System.currentTimeMillis() - startTime
                         fileOutputStream.write(buffer, 0, bytesRead)
+
+                        downloadSize += bytesRead
 
                         if (delta < 100)
                             variableBufferSize *= 2
@@ -64,6 +70,12 @@ interface RequestHelper {
                             .coerceAtLeast(4 * 1024)
                             .coerceAtMost(1024 * 1024)
                         startTime = System.currentTimeMillis()
+                    }
+
+                    analytics.logEvent("media_downloaded") {
+                        param("time_elapsed_ms", System.currentTimeMillis() - downloadStartTime)
+                        param("download_size_bytes", downloadSize)
+                        param("final_buffer_size", variableBufferSize.toLong())
                     }
                 }
             }
