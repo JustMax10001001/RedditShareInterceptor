@@ -31,10 +31,11 @@ class RedditPostHandler(
                 //ImgurImageProcessor(),
                 GfycatPostProcessor(),
                 RedditVideoPostProcessor(),
-                TextPostProcessor(),
+                RedditTextPostProcessor(),
                 RedGifsPostProcessor(),
                 RedditGalleryPostProcessor(),
                 StreamablePostProcessor(),
+                RedditTwitterPostProcessor()
             )
         )
     }
