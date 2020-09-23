@@ -57,6 +57,11 @@ class MediaList(val listMediaContentType: MediaContentType) : ArrayList<MediaMod
     }
 
     fun getMostSuitableMedia(mediaSpec: MediaSpec = MediaSpec()): MediaList {
+        if (this.isEmpty())
+            throw IllegalStateException("MediaList is empty!")
+        if (this.count() == 1)
+            return mediaListOf(this.listMediaContentType).also { addAll(this) }
+
         val sortedList = this.sortedWith(compareBy(MediaModel::index, { -it.size }))
         return MediaList(listMediaContentType).apply {
             addAll(
