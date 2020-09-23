@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor
 
 import com.justsoft.redditshareinterceptor.processors.PostProcessor
+import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
 
 open class ProcessorSelectionException(
     message: String = "",
@@ -34,6 +35,43 @@ class MultipleSuitableProcessorsExceptions(
 class NoSuitableProcessorException(
     message: String = "There are no suitable PostProcessors."
 ): ProcessorSelectionException(message)
+
+
+
+open class UrlHandlerSelectionException(
+    message: String = "",
+    cause: Throwable? = null
+) : Exception(message, cause)
+
+class MultipleSuitableUrlHandlersExceptions(
+    message: String = "There are multiple suitable UrlHandlers.",
+    cause: Throwable? = null,
+    handlers: Iterable<UrlHandler>
+) : UrlHandlerSelectionException(message, cause) {
+
+    private val localMessage: String
+
+    override val message: String?
+        get() = super.message + localMessage
+
+    init {
+        val sb = StringBuilder()
+            .append("Available handlers are: ")
+        val it = handlers.iterator()
+        while (it.hasNext()) {
+            sb.append(it.next().javaClass.canonicalName)
+            if (it.hasNext())
+                sb.append(", ")
+        }
+        localMessage = sb.toString()
+    }
+}
+
+class NoSuitableUrlHandlerException(
+    message: String = ""
+): UrlHandlerSelectionException("There are no suitable UrlHandlers. Maybe Url is wrong or malformed. $message")
+
+
 
 open class MediaDownloadException(
     message: String = "Error while downloading post media.",

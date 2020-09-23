@@ -2,14 +2,14 @@ package com.justsoft.redditshareinterceptor
 
 import android.content.Intent
 import android.os.Bundle
+import android.os.Handler
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 
 class ActivityRedditInterceptor : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        FirebaseAnalyticsHelper.getInstance(this)
+        //setContentView(R.layout.activity_main)
 
         when (intent?.action) {
             Intent.ACTION_SEND -> {
@@ -24,9 +24,11 @@ class ActivityRedditInterceptor : AppCompatActivity() {
                         )
                     }
 
+                    //startService(serviceIntent)
                     RedditProcessorService.enqueueWork(applicationContext, serviceIntent)
                     finish()
                     overridePendingTransition(0, 0)
+
                 }
             }
         }

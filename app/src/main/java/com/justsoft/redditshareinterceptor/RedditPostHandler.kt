@@ -203,6 +203,6 @@ class RedditPostHandler(
     }
 
     companion object {
-        const val LOG_TAG = "PostHandler"
+        private const val LOG_TAG = "PostHandler"
     }
 }
