@@ -27,9 +27,16 @@ class RedditPostHandlerIntegrationTest {
     @Before
     fun init() {
         val requestHelper = volleyRequestHelper
+        val context = InstrumentationRegistry.getInstrumentation().context
         postHandler = RedditPostHandler(
             requestHelper
-        )
+        ) { contentType, _ ->
+            assertEquals(MediaContentType.VIDEO, contentType)
+            openFileDescriptor(
+                context,
+                getInternalFileUri(context, File(context.filesDir, "testfile.file"))
+            )
+        }
         postHandler.error {
             throw it
         }
@@ -38,24 +45,10 @@ class RedditPostHandlerIntegrationTest {
 
     @Test
     fun testContentLength() {
-        assertEquals(2235703, volleyRequestHelper.getContentLength("https://thcf7.redgifs.com/WeirdTediousHound-mobile.mp4"))
-    }
-
-    @Test
-    fun testMediaDownload() {
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
-        val targetFile = File(context.filesDir, "test.png")
-        val targetFileUri = getInternalFileUri(context, targetFile)
-
-        targetFile.delete()
-
-        postHandler.downloadMedia(
-            "https://i.imgur.com/GTrjBEI.png",
-            openFileDescriptor(context, targetFileUri)
+        assertEquals(
+            2235703,
+            volleyRequestHelper.getContentLength("https://thcf7.redgifs.com/WeirdTediousHound-mobile.mp4")
         )
-
-        assert(targetFile.exists())
-        assert(targetFile.length() > 0)
     }
 
     private fun openFileDescriptor(
@@ -88,10 +81,13 @@ class RedditPostHandlerIntegrationTest {
 
         targetFile.delete()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") { contentType, _ ->
+        val postHandler = RedditPostHandler(
+            volleyRequestHelper
+        ) { contentType, _ ->
             assertEquals(MediaContentType.VIDEO, contentType)
             openFileDescriptor(context, targetFileUri)
         }
+        postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/")
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -105,11 +101,15 @@ class RedditPostHandlerIntegrationTest {
 
         targetFile.delete()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") { contentType, index ->
+        val postHandler = RedditPostHandler(
+            volleyRequestHelper
+        ) { contentType, index ->
             assertEquals(MediaContentType.IMAGE, contentType)
             assertEquals(0, index)
             openFileDescriptor(context, targetFileUri)
         }
+
+        postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/")
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -122,7 +122,9 @@ class RedditPostHandlerIntegrationTest {
         val targetFiles = mutableListOf<File>()
         val targetFileUris = mutableListOf<Uri>()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/") { contentType, index ->
+        val postHandler = RedditPostHandler(
+            volleyRequestHelper
+        ) { contentType, index ->
             assertEquals(MediaContentType.GALLERY, contentType)
 
             targetFiles.add(File(context.filesDir, "test_$index.jpg"))
@@ -131,6 +133,8 @@ class RedditPostHandlerIntegrationTest {
 
             openFileDescriptor(context, targetFileUris[index])
         }
+
+        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/")
 
         for (file in targetFiles) {
             assert(file.exists())
