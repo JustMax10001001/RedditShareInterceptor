@@ -1,8 +1,9 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
-import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -17,7 +18,7 @@ class RedditVideoPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): ContentType {
+    ): MediaContentType {
         /*val htmlDoc = Jsoup.parse(
             requestHelper.readHttpJsonResponse(
                 RIPSAVE_GETLINK_URL,
@@ -36,19 +37,19 @@ class RedditVideoPostProcessor : PostProcessor {
             .getElementsByClass("table-col")[0]         // get table column, then check if there is element with value "Video with Audio"
         val downloadTables = tableColumn.getElementsByClass("downloadTable")
 
-        val contentType = if (downloadTables.size == 1) ContentType.GIF else ContentType.VIDEO
+        val contentType = if (downloadTables.size == 1) MediaContentType.GIF else MediaContentType.VIDEO
 
         val table = getBestTable(downloadTables, tableColumn)
         val tableRows = table
             .getElementsByTag("tbody")[0]
             .getElementsByTag("tr")
 
-        val bestLink = if (contentType == ContentType.GIF)
+        val bestLink = if (contentType == MediaContentType.GIF)
             getBestLink(tableRows)
         else
             genVideoLink(getBestLink(tableRows), requestHelper)
 
-        savedState.putBoolean(BUNDLE_IS_GIF, contentType == ContentType.GIF)
+        savedState.putBoolean(BUNDLE_IS_GIF, contentType == MediaContentType.GIF)
         savedState.putString(BUNDLE_BEST_URL, bestLink)
 
         return contentType
@@ -92,11 +93,11 @@ class RedditVideoPostProcessor : PostProcessor {
 
     }
 
-    override fun getMediaDownloadUrl(
+    override fun getAllPossibleMediaDownloads(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): String = savedState.getString(BUNDLE_BEST_URL)!!
+    ): MediaList = savedState.getString(BUNDLE_BEST_URL)!!
 
     companion object {
         const val RIPSAVE_LINK = "https://ripsave.com"

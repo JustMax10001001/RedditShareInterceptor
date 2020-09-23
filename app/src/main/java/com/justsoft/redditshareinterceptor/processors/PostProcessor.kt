@@ -1,8 +1,9 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
-import com.justsoft.redditshareinterceptor.model.ContentType
 import com.justsoft.redditshareinterceptor.model.RedditPost
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
 /**
@@ -14,7 +15,7 @@ interface PostProcessor {
 
     fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean
 
-    fun getPostContentType(redditPost: RedditPost, savedState: Bundle, requestHelper: RequestHelper): ContentType
+    fun getPostContentType(redditPost: RedditPost, savedState: Bundle, requestHelper: RequestHelper): MediaContentType
 
-    fun getMediaDownloadUrl(redditPost: RedditPost, savedState: Bundle, requestHelper: RequestHelper): String
+    fun getAllPossibleMediaDownloads(redditPost: RedditPost, savedState: Bundle, requestHelper: RequestHelper): MediaList
 }
