@@ -172,7 +172,7 @@ class RedditPostHandler(private val requestHelper: RequestHelper) {
         postProcessorBundle: Bundle
     ): String {
         return try {
-            postProcessor.getAllPossibleMediaDownloads(
+            postProcessor.downloadMediaMatchingMediaSpec(
                 postObject, postProcessorBundle, requestHelper
             )
         } catch (e: Exception) {

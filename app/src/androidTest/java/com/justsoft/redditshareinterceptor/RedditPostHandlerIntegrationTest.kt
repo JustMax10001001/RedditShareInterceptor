@@ -18,17 +18,27 @@ class RedditPostHandlerIntegrationTest {
 
     private lateinit var postHandler: RedditPostHandler
 
+    private val volleyRequestHelper: VolleyRequestHelper by lazy {
+        VolleyRequestHelper(
+            Volley.newRequestQueue(InstrumentationRegistry.getInstrumentation().targetContext)
+        )
+    }
+
     @Before
     fun init() {
+        val requestHelper = volleyRequestHelper
         postHandler = RedditPostHandler(
-            VolleyRequestHelper(
-                Volley.newRequestQueue(InstrumentationRegistry.getInstrumentation().targetContext)
-            )
+            requestHelper
         )
         postHandler.error {
             throw it
         }
         postHandler.mediaSuccess { _, _, _ -> assert(true) }
+    }
+
+    @Test
+    fun testContentLength() {
+        assertEquals(2235703, volleyRequestHelper.getContentLength("https://thcf7.redgifs.com/WeirdTediousHound-mobile.mp4"))
     }
 
     @Test
@@ -112,7 +122,7 @@ class RedditPostHandlerIntegrationTest {
         val targetFiles = mutableListOf<File>()
         val targetFileUris = mutableListOf<Uri>()
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/"){ contentType, index ->
+        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/") { contentType, index ->
             assertEquals(MediaContentType.GALLERY, contentType)
 
             targetFiles.add(File(context.filesDir, "test_$index.jpg"))
