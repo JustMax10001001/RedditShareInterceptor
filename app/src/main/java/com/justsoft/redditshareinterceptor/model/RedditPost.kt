@@ -1,5 +1,6 @@
 package com.justsoft.redditshareinterceptor.model
 
+import com.justsoft.redditshareinterceptor.util.urlDecode
 import org.json.JSONObject
 
 class RedditPost(
@@ -32,10 +33,10 @@ class RedditPost(
             .getJSONArray("images")
             .getJSONObject(0)
 
-        urlList.add(image.getJSONObject("source").getString("url"))
+        urlList.add(urlDecode(image.getJSONObject("source").getString("url")))
         val resolutions = image.getJSONArray("resolutions")
         for (i in 0 until resolutions.length()) {
-            urlList.add(resolutions.getJSONObject(i).getString("url"))
+            urlList.add(urlDecode(resolutions.getJSONObject(i).getString("url")))
         }
 
         urlList
@@ -54,11 +55,11 @@ class RedditPost(
         while (keysIterator.hasNext()) {
             val mediaId = keysIterator.next()
             val mediaObj = mediaMetadata.getJSONObject(mediaId)
-            urlList.add(mediaObj.getJSONObject("s").getString("u"))     // source
+            urlList.add(urlDecode(mediaObj.getJSONObject("s").getString("u")))     // source
 
             val resolutions = mediaObj.getJSONArray("p")
             for (i in 0 until resolutions.length()) {
-                urlList.add(resolutions.getJSONObject(i).getString("u"))
+                urlList.add(urlDecode(resolutions.getJSONObject(i).getString("u")))
             }
         }
 
