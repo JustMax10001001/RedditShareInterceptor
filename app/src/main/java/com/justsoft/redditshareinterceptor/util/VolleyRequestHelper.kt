@@ -50,21 +50,4 @@ class VolleyRequestHelper(
         )
         return requestFuture.get()
     }
-
-    override fun getContentLength(requestUrl: String, params: MutableMap<String, String>): Long {
-        val requestFuture = RequestFuture.newFuture<JSONObject>()
-        requestQueue.add(
-            object : VolleyMetaRequest(Method.GET, requestUrl, null, requestFuture, requestFuture) {
-
-                override fun getParams(): MutableMap<String, String> = params
-            }.setRetryPolicy(
-                DefaultRetryPolicy(
-                    10000,
-                    2,
-                    DefaultRetryPolicy.DEFAULT_BACKOFF_MULT
-                )
-            )
-        )
-        return requestFuture.get().getJSONObject("headers").getLong("Content-Length")
-    }
 }
