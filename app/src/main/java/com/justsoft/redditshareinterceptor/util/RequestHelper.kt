@@ -24,10 +24,24 @@ interface RequestHelper {
         destinationFileDescriptor.use {
             FileOutputStream(destinationFileDescriptor.fileDescriptor).use { fileOutputStream ->
                 sourceConnection.inputStream.use { inputStream ->
-                    val buffer = ByteArray(1024 * 64)
+                    val buffer = ByteArray(1024 * 1024)
+                    var variableBufferSize = 128 * 1024
+                    var startTime = System.currentTimeMillis()
                     var bytesRead: Int
-                    while (inputStream.read(buffer).also { bytesRead = it } > 0) {
+                    while (inputStream.read(buffer, 0, variableBufferSize)
+                            .also { bytesRead = it } > 0
+                    ) {
+                        val delta = System.currentTimeMillis() - startTime
                         fileOutputStream.write(buffer, 0, bytesRead)
+
+                        if (delta < 100)
+                            variableBufferSize *= 2
+                        if (delta > 500)
+                            variableBufferSize /= 2
+                        variableBufferSize = variableBufferSize
+                            .coerceAtLeast(4 * 1024)
+                            .coerceAtMost(1024 * 1024)
+                        startTime = System.currentTimeMillis()
                     }
                 }
             }
