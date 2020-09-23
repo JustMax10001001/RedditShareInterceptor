@@ -43,14 +43,6 @@ class RedditPostHandlerIntegrationTest {
         postHandler.mediaSuccess { _, _, _ -> assert(true) }
     }
 
-    @Test
-    fun testContentLength() {
-        assertEquals(
-            2235703,
-            volleyRequestHelper.getContentLength("https://thcf7.redgifs.com/WeirdTediousHound-mobile.mp4")
-        )
-    }
-
     private fun openFileDescriptor(
         context: Context,
         targetFileUri: Uri
