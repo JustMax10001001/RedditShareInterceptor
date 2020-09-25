@@ -1,6 +1,6 @@
 #built application files
-*.apk
-*.ap_
+#*.apk
+#*.ap_
 
 # files for the dex VM
 *.dex
@@ -36,8 +36,5 @@ obj/
 .externalNativeBuild
 
 # keys
-rsi.jks
-app/release/output-metadata.json
-app/google-services.json
-app/release/
-app/release/app-release.apk
+*.jks
+/app/google-services.json
