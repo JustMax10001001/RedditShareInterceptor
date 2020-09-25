@@ -2,9 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.justsoft.redditshareinterceptor">
 
-    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
 
     <application
         android:allowBackup="true"
@@ -14,10 +14,13 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <service
+            android:name=".UniversalProcessorForegroundService"
+            android:exported="false" />
+        <service
             android:name=".RedditProcessorService"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true">
-        </service>
+            android:exported="true"
+            android:permission="android.permission.BIND_JOB_SERVICE" />
+
         <activity
             android:name=".ActivityUrlInterceptor"
             android:label="@string/interceptor_label"
@@ -32,11 +35,12 @@
         </activity>
 
         <provider
-            android:authorities="@string/provider_name"
             android:name="androidx.core.content.FileProvider"
-            android:grantUriPermissions="true"
-            android:exported="false">
-            <meta-data android:name="android.support.FILE_PROVIDER_PATHS"
+            android:authorities="@string/provider_name"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/external_paths" />
         </provider>
 
