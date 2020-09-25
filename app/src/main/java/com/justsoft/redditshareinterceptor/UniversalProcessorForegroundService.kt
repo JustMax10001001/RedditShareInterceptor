@@ -51,6 +51,16 @@ class UniversalProcessorForegroundService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(LOG_TAG, "onStartCommand()")
 
+        intent ?: throw IllegalArgumentException("intent is null")
+
+        if (intent.action == ACTION_PROCESS_URL) {
+            startForeground(DOWNLOADING_NOTIFICATION_ID, buildNotification())
+            mBackgroundExecutor.submit {
+                val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
+                FirebaseCrashlytics.getInstance().setCustomKey("url", url)
+                mUniversalUrlProcessor.handleUrl(url)
+            }
+        }
 
         return START_NOT_STICKY
     }
@@ -78,6 +88,7 @@ class UniversalProcessorForegroundService : Service() {
 
     private fun onResult(processingResult: ProcessingResult) {
         executeOnMainThread {
+
             startActivity(
                 when (processingResult.contentType) {
                     MediaContentType.GALLERY -> prepareMediaMultipleIntent(
@@ -143,6 +154,20 @@ class UniversalProcessorForegroundService : Service() {
 
     // NOTIFICATION
 
+    private val mNotificationManager: NotificationManager by lazy {
+        applicationContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    }
+
+    private fun updateDownloadNotification(
+        progress: Int = 0,
+        statusTextResId: Int = R.string.processing_media_state_starting
+    ) {
+        mNotificationManager.notify(
+            DOWNLOADING_NOTIFICATION_ID,
+            buildNotification(progress, statusTextResId)
+        )
+    }
+
     private fun buildNotification(
         progress: Int = 50,
         statusTextResId: Int = R.string.processing_media_state_starting
@@ -158,6 +183,7 @@ class UniversalProcessorForegroundService : Service() {
             .setContentTitle(getString(R.string.processing_media))
             .setContentText(getString(statusTextResId))
             .setProgress(100, progress, false)
+            .setOngoing(true)
             .build()
     }
 
@@ -172,7 +198,7 @@ class UniversalProcessorForegroundService : Service() {
 
 // END NOTIFICATION
 
-// UTILITY METHODS
+    // UTILITY METHODS
 
     private fun longToast(message: String) {
         executeOnMainThread {
@@ -217,6 +243,10 @@ class UniversalProcessorForegroundService : Service() {
         private const val LOG_TAG = "UProcessorService"
 
         private const val ONGOING_DOWNLOAD_CHANNEL_ID = "ongoing_download"
+        private const val DOWNLOADING_NOTIFICATION_ID = 777
+
+        const val ACTION_PROCESS_URL =
+            "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"
 
         private val contentTypeToFileNameMap = mapOf(
             MediaContentType.GIF to "gif.mp4",
