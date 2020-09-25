@@ -72,6 +72,9 @@ class UniversalProcessorForegroundService : Service() {
     }
 
     override fun onDestroy() {
+        mBackgroundExecutor.shutdown()
+        stopForeground(true)
+
         super.onDestroy()
 
         Log.d(LOG_TAG, "onDestroy()")
