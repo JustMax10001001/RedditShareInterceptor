@@ -16,10 +16,18 @@ class GifDownloader : MediaDownloader {
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ): List<Uri> {
         val uri = destinationUriCallback(MediaContentType.VIDEO, 0)
+        var prevProgress = 0
         requestHelper.downloadToOutputStream(
             mediaList[0].downloadUrl,
             outputStreamCallback(uri)
-        )
+        ) { processingProgress ->
+            val progress =
+                (processingProgress.overallProgress.toDouble() / mediaList[0].size * 100).toInt()
+            if (progress != prevProgress) {
+                prevProgress = progress
+                downloadProgressCallback(ProcessingProgress(-1, progress))
+            }
+        }
         return listOf(uri)
     }
 }
