@@ -21,19 +21,19 @@ class ActivityUrlInterceptor : AppCompatActivity() {
                 Log.d("IntentHandler", "Received intent action=ACTION_SEND, type=" + intent?.type)
                 if (intent?.type == "text/plain") {
                     Log.d("IntentHandler", "Raw value is " + intent?.extras?.get(Intent.EXTRA_TEXT))
-                    val serviceIntent = Intent(this, RedditProcessorService::class.java).apply {
-                        action = ACTION_PROCESS_REDDIT_URL
-                        putExtra(
-                            Intent.EXTRA_TEXT,
-                            intent?.extras?.get(Intent.EXTRA_TEXT).toString()
-                        )
-                    }
+                    val serviceIntent =
+                        Intent(this, UniversalProcessorForegroundService::class.java).apply {
+                            action = UniversalProcessorForegroundService.ACTION_PROCESS_URL
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                intent?.extras?.get(Intent.EXTRA_TEXT).toString()
+                            )
+                        }
 
-                    //startService(serviceIntent)
-                    RedditProcessorService.enqueueWork(applicationContext, serviceIntent)
                     finish()
                     overridePendingTransition(0, 0)
 
+                    startService(serviceIntent)
                 }
             }
         }
