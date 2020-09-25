@@ -1,10 +1,8 @@
 package com.justsoft.redditshareinterceptor.model.media
 
-import java.util.function.UnaryOperator
-
 class MediaList(val listMediaContentType: MediaContentType, var caption: String = "") : ArrayList<MediaModel>() {
 
-    private fun checkElementContentType(element: MediaModel) {
+    /*private fun checkElementContentType(element: MediaModel) {
         if (element.mediaType != listMediaContentType)
             throw IllegalArgumentException(
                 "Can't add element to list because it has different type: " +
@@ -40,7 +38,7 @@ class MediaList(val listMediaContentType: MediaContentType, var caption: String 
     override fun add(element: MediaModel): Boolean {
         checkElementContentType(element)
         return super.add(element)
-    }
+    }*/
 
     private fun processSubList(mediaSpec: MediaSpec, sortedList: List<MediaModel>): MediaModel {
         val threshold = mediaSpec.getThresholdForType(listMediaContentType)

@@ -6,6 +6,7 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.io.OutputStream
 
@@ -23,21 +24,23 @@ class GalleryDownloader : MediaDownloader {
             var prevProgress = 0
             var totalProgress = 0
             for (i in 0 until imageCount) {
-                val uri = destinationUriCallback(MediaContentType.GALLERY, i)
-                requestHelper.downloadToOutputStream(
-                    mediaList[i].downloadUrl,
-                    outputStreamCallback(uri)
-                ) { processingProgress ->
-                    // requestHelper returns the total amount of bytes read
-                    totalProgress += (processingProgress.overallProgress / mediaList[i].size.toDouble() * 100 / imageCount).toInt()
-                    if (totalProgress != prevProgress) {
-                        downloadProgressCallback(
-                            ProcessingProgress(-1, totalProgress)
-                        )
-                        prevProgress = totalProgress
+                launch {
+                    val uri = destinationUriCallback(MediaContentType.GALLERY, i)
+                    requestHelper.downloadToOutputStream(
+                        mediaList[i].downloadUrl,
+                        outputStreamCallback(uri)
+                    ) { processingProgress ->
+                        // requestHelper returns the total amount of bytes read
+                        totalProgress += (processingProgress.overallProgress / mediaList[i].size.toDouble() * 100 / imageCount).toInt()
+                        if (totalProgress != prevProgress) {
+                            downloadProgressCallback(
+                                ProcessingProgress(-1, totalProgress)
+                            )
+                            prevProgress = totalProgress
+                        }
                     }
+                    uris.add(uri)
                 }
-                uris.add(uri)
             }
         }
         return uris

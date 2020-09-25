@@ -31,7 +31,7 @@ class RedditGalleryPostProcessor : PostProcessor {
     }
 
     private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
-        return mediaListOf(MediaContentType.IMAGE).apply {
+        return mediaListOf(MediaContentType.GALLERY).apply {
             runBlocking(Dispatchers.IO) {
                 redditPost.galleryImageUrls.forEach { entry ->
                     entry.value.forEach { url ->
