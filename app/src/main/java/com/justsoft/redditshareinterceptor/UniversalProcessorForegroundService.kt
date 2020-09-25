@@ -38,16 +38,25 @@ class UniversalProcessorForegroundService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        Log.d(LOG_TAG, "onCreate()")
+
+        mUniversalUrlProcessor.error(::onError)
+        mUniversalUrlProcessor.result(::onResult)
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-
+        Log.d(LOG_TAG, "onStartCommand()")
 
         return START_NOT_STICKY
     }
 
     override fun onBind(intent: Intent?): IBinder? {
         return null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        Log.d(LOG_TAG, "onDestroy()")
     }
 
     // END LIFECYCLE METHODS
