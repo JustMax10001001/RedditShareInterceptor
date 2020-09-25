@@ -1,7 +1,6 @@
 package com.justsoft.redditshareinterceptor
 
 import android.app.Service
-import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Handler
@@ -9,7 +8,6 @@ import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
-import androidx.core.app.JobIntentService
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -192,10 +190,5 @@ class UniversalProcessorForegroundService : Service() {
             MediaContentType.IMAGE to "image/*",
             MediaContentType.GALLERY to "image/*",
         )
-
-        fun enqueueWork(context: Context, work: Intent) {
-            Log.d(LOG_TAG, "enqueueWork(context, work)")
-            JobIntentService.enqueueWork(context, RedditProcessorService::class.java, 1000, work)
-        }
     }
 }
