@@ -5,10 +5,18 @@
     <string name="interceptor_label">Download media and share</string>
     <string name="selected_file">Selected file: {0}</string>
     <string name="provider_name">com.justsoft.redditshareinterceptor.provider</string>
-    <string name="ongoing_media_downlaoad">Ongoing media download</string>
+    <string name="ongoing_media_download">Ongoing media download</string>
+
+
     <string name="processing_media">Processing media</string>
+
     <string name="processing_media_state_starting">Keep rolling, rolling, rolling</string>
-    <string name="media_processing_state_processed">Media downloaded!</string>
+    <string name="processing_media_state_processed">Media downloaded!</string>
+    <string name="processing_media_state_found_url_handler">Found suitable URL handler</string>
+    <string name="processing_media_state_loaded_media_variants">Loaded a list of available media</string>
+    <string name="processing_media_state_filtered_media_variants">Beginning download</string>
+    <string name="processing_media_state_downloading_media">Downloading media</string>
+
     <string name="error_processing_url">Error processing post</string>
     <string name="error_processing_url_extended">Error processing post: {0}</string>
 </resources>

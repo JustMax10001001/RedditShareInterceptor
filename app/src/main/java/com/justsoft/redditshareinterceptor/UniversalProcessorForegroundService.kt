@@ -17,6 +17,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
@@ -60,7 +61,7 @@ class UniversalProcessorForegroundService : Service() {
             mBackgroundExecutor.submit {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
                 FirebaseCrashlytics.getInstance().setCustomKey("url", url)
-                mUniversalUrlProcessor.handleUrl(url)
+                mUniversalUrlProcessor.handleUrl(url, this::onProgress)
             }
         }
 
@@ -98,7 +99,7 @@ class UniversalProcessorForegroundService : Service() {
 
     private fun onResult(processingResult: ProcessingResult) {
         executeOnMainThread {
-            updateDownloadNotification(100, R.string.media_processing_state_processed)
+            updateDownloadNotification(100, R.string.processing_media_state_processed)
             startActivity(
                 when (processingResult.contentType) {
                     MediaContentType.GALLERY -> prepareMediaMultipleIntent(
@@ -114,6 +115,15 @@ class UniversalProcessorForegroundService : Service() {
                 }
             )
             stopForeground(true)
+        }
+    }
+
+    private fun onProgress(processingProgress: ProcessingProgress) {
+        executeOnMainThread {
+            updateDownloadNotification(
+                processingProgress.overallProgress,
+                processingProgress.statusTextResourceId
+            )
         }
     }
 
@@ -221,7 +231,7 @@ class UniversalProcessorForegroundService : Service() {
 
     @RequiresApi(VERSION_CODES.O)
     private fun buildNotificationChannel() {
-        val name = getString(R.string.ongoing_media_downlaoad)
+        val name = getString(R.string.ongoing_media_download)
         val importance = NotificationManager.IMPORTANCE_LOW
         val mChannel = NotificationChannel(ONGOING_DOWNLOAD_CHANNEL_ID, name, importance)
         val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
@@ -269,7 +279,7 @@ class UniversalProcessorForegroundService : Service() {
     private fun getMimeForContentType(mediaContentType: MediaContentType): String =
         contentTypeToMIME[mediaContentType] ?: error("No such key: $mediaContentType in MIME map")
 
-// END UTILITY METHODS
+    // END UTILITY METHODS
 
     companion object {
         private const val LOG_TAG = "UProcessorService"

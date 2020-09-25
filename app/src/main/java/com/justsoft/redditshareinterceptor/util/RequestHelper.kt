@@ -1,6 +1,8 @@
 package com.justsoft.redditshareinterceptor.util
 
+import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import org.json.JSONObject
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -40,7 +42,11 @@ interface RequestHelper {
         return length
     }
 
-    fun downloadToOutputStream(requestUrl: String, outputStream: OutputStream) {
+    fun downloadToOutputStream(
+        requestUrl: String,
+        outputStream: OutputStream,
+        downloadProgressCallback: (ProcessingProgress) -> Unit
+    ) {
         val sourceConnection: HttpURLConnection =
             URL(requestUrl).openConnection() as HttpURLConnection
         outputStream.use { fileOutputStream ->
@@ -48,33 +54,39 @@ interface RequestHelper {
             sourceConnection.inputStream.use { inputStream ->
                 val downloadStartTime = System.currentTimeMillis()
                 var downloadSize: Long = 0
-                val buffer = ByteArray(1024 * 1024)
-                var variableBufferSize: Int = 128 * 1024
-                var startTime = System.currentTimeMillis()
+                val buffer = ByteArray(16 * 1024)
                 var bytesRead: Int
-                while (inputStream.read(buffer, 0, variableBufferSize)
+                while (inputStream.read(buffer)
                         .also { bytesRead = it } > 0
                 ) {
-                    val delta = System.currentTimeMillis() - startTime
                     fileOutputStream.write(buffer, 0, bytesRead)
 
                     downloadSize += bytesRead
 
-                    if (delta < 100)
-                        variableBufferSize *= 2
-                    if (delta > 500)
-                        variableBufferSize /= 2
-                    variableBufferSize = variableBufferSize
-                        .coerceAtLeast(4 * 1024)
-                        .coerceAtMost(1024 * 1024)
-                    startTime = System.currentTimeMillis()
+                    downloadProgressCallback(
+                        ProcessingProgress(
+                            -1,
+                            downloadSize.toInt()
+                        )
+                    )  // report how many bytes are already downloaded
                 }
 
+                val timeElapsed = System.currentTimeMillis() - downloadStartTime
+
                 analytics.logEvent("media_downloaded") {
-                    param("time_elapsed_ms", System.currentTimeMillis() - downloadStartTime)
+                    param("time_elapsed_ms", timeElapsed)
                     param("download_size_bytes", downloadSize)
-                    param("final_buffer_size", variableBufferSize.toLong())
                 }
+                Log.d(
+                    "RequestHelper",
+                    ("Media of size %.2f MiB\r\n" +
+                            "downloaded in $timeElapsed ms.\r\n" +
+                            "with speed of %.2f MiB/s\r\n")
+                        .format(
+                            downloadSize / 1024.0 / 1024.0,
+                            downloadSize / 1024.0 / 1024.0 / timeElapsed * 1000
+                        )
+                )
             }
         }
     }

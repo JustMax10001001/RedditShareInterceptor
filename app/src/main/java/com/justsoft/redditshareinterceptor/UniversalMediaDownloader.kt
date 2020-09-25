@@ -2,6 +2,7 @@ package com.justsoft.redditshareinterceptor
 
 import android.net.Uri
 import com.justsoft.redditshareinterceptor.downloaders.*
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -13,9 +14,18 @@ class UniversalMediaDownloader(
     private val outputStreamCallback: (Uri) -> OutputStream
 ) {
 
-    fun downloadMediaList(mediaList: MediaList): List<Uri> {
+    fun downloadMediaList(
+        mediaList: MediaList,
+        downloadProgressCallback: (ProcessingProgress) -> Unit
+    ): List<Uri> {
         return selectDownloaderForMediaType(mediaList.listMediaContentType)
-                 .downloadMedia(mediaList, requestHelper, destinationUriCallback, outputStreamCallback)
+            .downloadMedia(
+                mediaList,
+                requestHelper,
+                destinationUriCallback,
+                outputStreamCallback,
+                downloadProgressCallback
+            )
     }
 
     private fun selectDownloaderForMediaType(mediaContentType: MediaContentType): MediaDownloader =
