@@ -28,7 +28,9 @@ class UniversalProcessorForegroundService : Service() {
 
     private val mHandler = Handler(Looper.getMainLooper())
     private val mBackgroundExecutor =
-        Executors.newSingleThreadExecutor { Thread("UUFSBackgroundThread") }
+        Executors.newSingleThreadExecutor { runnable ->
+            Thread(runnable, "UUFSBackgroundThread")
+        }
 
     private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
         UniversalUrlProcessor(
