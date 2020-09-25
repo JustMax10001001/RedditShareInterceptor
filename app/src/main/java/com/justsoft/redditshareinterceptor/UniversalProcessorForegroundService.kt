@@ -61,6 +61,7 @@ class UniversalProcessorForegroundService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+
         Log.d(LOG_TAG, "onDestroy()")
     }
 
@@ -142,18 +143,21 @@ class UniversalProcessorForegroundService : Service() {
 
     // NOTIFICATION
 
-    private fun buildNotification(): Notification {
+    private fun buildNotification(
+        progress: Int = 50,
+        statusTextResId: Int = R.string.processing_media_state_starting
+    ): Notification {
         val notificationBuilder =
             if (VERSION.SDK_INT >= VERSION_CODES.O) {
                 buildNotificationChannel()
                 Notification.Builder(this, ONGOING_DOWNLOAD_CHANNEL_ID)
             } else
-                Notification.Builder(this,)
+                Notification.Builder(this)
         return notificationBuilder
             .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setContentTitle("Rolling")
-            .setContentText("Keep rolling, rolling, rolling")
-            .setProgress(100, 50, false)
+            .setContentTitle(getString(R.string.processing_media))
+            .setContentText(getString(statusTextResId))
+            .setProgress(100, progress, false)
             .build()
     }
 

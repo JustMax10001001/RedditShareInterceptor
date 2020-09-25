@@ -6,4 +6,6 @@
     <string name="selected_file">Selected file: {0}</string>
     <string name="provider_name">com.justsoft.redditshareinterceptor.provider</string>
     <string name="ongoing_media_downlaoad">Ongoing media download</string>
+    <string name="processing_media">Processing media</string>
+    <string name="processing_media_state_starting">Keep rolling, rolling, rolling</string>
 </resources>
