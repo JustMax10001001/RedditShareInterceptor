@@ -80,9 +80,53 @@ class UniversalProcessorForegroundService : Service() {
         }
     }
 
-// END PROCESSOR HANDLER EVENTS
+    // END PROCESSOR HANDLER EVENTS
 
-// UTILITY METHODS
+    // INTENT CREATION
+
+    private fun prepareMediaMultipleIntent(
+        caption: String,
+        uris: List<Uri>
+    ): Intent {
+        return prepareIntent(
+            getMimeForContentType(MediaContentType.GALLERY),
+            caption
+        ).apply {
+            action = Intent.ACTION_SEND_MULTIPLE
+
+            putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+        }
+    }
+
+    private fun prepareTextIntent(caption: String): Intent =
+        prepareIntent(
+            "text/plain",
+            caption
+        )
+
+    private fun prepareMediaIntent(
+        caption: String,
+        mediaContentType: MediaContentType,
+        mediaUri: Uri
+    ): Intent =
+        prepareIntent(
+            getMimeForContentType(mediaContentType), caption
+        ).putExtra(Intent.EXTRA_STREAM, mediaUri)
+
+    private fun prepareIntent(mimeType: String, extraText: String): Intent =
+        Intent().apply {
+            action = Intent.ACTION_SEND
+            type = mimeType
+
+            putExtra(Intent.EXTRA_TEXT, extraText)
+
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        }
+
+    // END INTENT CREATION
+
+    // UTILITY METHODS
 
     private fun longToast(message: String) {
         executeOnMainThread {
@@ -121,7 +165,7 @@ class UniversalProcessorForegroundService : Service() {
     private fun getMimeForContentType(mediaContentType: MediaContentType): String =
         contentTypeToMIME[mediaContentType] ?: error("No such key: $mediaContentType in MIME map")
 
-// END UTILITY METHODS
+    // END UTILITY METHODS
 
     companion object {
         private const val LOG_TAG = "UProcessorService"
