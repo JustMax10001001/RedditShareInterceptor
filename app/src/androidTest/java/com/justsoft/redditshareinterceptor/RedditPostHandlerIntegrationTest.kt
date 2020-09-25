@@ -1,8 +1,6 @@
 package com.justsoft.redditshareinterceptor
 
-import android.content.Context
 import android.net.Uri
-import android.os.ParcelFileDescriptor
 import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.volley.toolbox.Volley
@@ -12,11 +10,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 import java.io.File
+import java.io.OutputStream
 
 
 class RedditPostHandlerIntegrationTest {
 
-    private lateinit var postHandler: RedditPostHandler
+    private lateinit var postHandler: UniversalUrlProcessor
 
     private val volleyRequestHelper: VolleyRequestHelper by lazy {
         VolleyRequestHelper(
@@ -28,58 +27,51 @@ class RedditPostHandlerIntegrationTest {
     fun init() {
         val requestHelper = volleyRequestHelper
         val context = InstrumentationRegistry.getInstrumentation().context
-        postHandler = RedditPostHandler(
-            requestHelper
-        ) { contentType, _ ->
-            assertEquals(MediaContentType.VIDEO, contentType)
-            openFileDescriptor(
-                context,
-                getInternalFileUri(context, File(context.filesDir, "testfile.file"))
-            )
-        }
+        postHandler = UniversalUrlProcessor(
+            requestHelper,
+            { _, _ -> getInternalFileUri("test.test")},
+            this::openStreamForUri
+        )
         postHandler.error {
             throw it
         }
-        postHandler.mediaSuccess { _, _, _ -> assert(true) }
+        postHandler.result { assert(true) }
     }
 
-    private fun openFileDescriptor(
-        context: Context,
-        targetFileUri: Uri
-    ): ParcelFileDescriptor {
-        return context.contentResolver.openFileDescriptor(
-            targetFileUri,
-            "w"
-        )!!
-    }
+    private fun openStreamForUri(uri: Uri): OutputStream =
+        InstrumentationRegistry.getInstrumentation().context.contentResolver.openOutputStream(uri)!!
 
 
-    private fun getInternalFileUri(
-        context: Context,
-        targetFile: File
-    ): Uri {
+    private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
-            context,
-            "com.justsoft.redditshareinterceptor.provider",
-            targetFile
-        )!!
+            InstrumentationRegistry.getInstrumentation().context,
+            InstrumentationRegistry.getInstrumentation().context.getString(R.string.provider_name),
+            File(InstrumentationRegistry.getInstrumentation().context.filesDir, file)
+        )
+    }
+
+    private fun getInternalFileUri(file: File): Uri {
+        return FileProvider.getUriForFile(
+            InstrumentationRegistry.getInstrumentation().context,
+            "com.justsoft.redditshareinterceptor.beta.provider",
+            file
+        )
     }
 
     @Test
     fun postHandleTest_RedditVideo() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val targetFile = File(context.filesDir, "test.mp4")
-        val targetFileUri = getInternalFileUri(context, targetFile)
+        val targetFileUri = getInternalFileUri(targetFile)
 
         targetFile.delete()
 
-        val postHandler = RedditPostHandler(
-            volleyRequestHelper
-        ) { contentType, _ ->
-            assertEquals(MediaContentType.VIDEO, contentType)
-            openFileDescriptor(context, targetFileUri)
-        }
-        postHandler.handlePostUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/")
+        val postHandler = UniversalUrlProcessor(
+            volleyRequestHelper,
+            { _, _ -> targetFileUri },
+            this::openStreamForUri
+        )
+        postHandler.handleUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") { }
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -89,19 +81,17 @@ class RedditPostHandlerIntegrationTest {
     fun postHandleTest_RedditImage() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val targetFile = File(context.filesDir, "test.jpg")
-        val targetFileUri = getInternalFileUri(context, targetFile)
+        val targetFileUri = getInternalFileUri(targetFile)
 
         targetFile.delete()
 
-        val postHandler = RedditPostHandler(
-            volleyRequestHelper
-        ) { contentType, index ->
-            assertEquals(MediaContentType.IMAGE, contentType)
-            assertEquals(0, index)
-            openFileDescriptor(context, targetFileUri)
-        }
+        val postHandler = UniversalUrlProcessor(
+            volleyRequestHelper,
+            { _, _ -> targetFileUri },
+            this::openStreamForUri
+        )
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/")
+        postHandler.handleUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") { }
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -114,19 +104,19 @@ class RedditPostHandlerIntegrationTest {
         val targetFiles = mutableListOf<File>()
         val targetFileUris = mutableListOf<Uri>()
 
-        val postHandler = RedditPostHandler(
-            volleyRequestHelper
-        ) { contentType, index ->
-            assertEquals(MediaContentType.GALLERY, contentType)
+        val postHandler = UniversalUrlProcessor(
+            volleyRequestHelper,
+            { contentType, index ->
+                assertEquals(MediaContentType.GALLERY, contentType)
 
-            targetFiles.add(File(context.filesDir, "test_$index.jpg"))
-            targetFiles[index].delete()
-            targetFileUris.add(getInternalFileUri(context, targetFiles[index]))
+                targetFiles.add(File(context.filesDir, "test_$index.jpg"))
+                targetFiles[index].delete()
+                targetFileUris.add(getInternalFileUri(targetFiles[index]))
 
-            openFileDescriptor(context, targetFileUris[index])
-        }
+                targetFileUris[index]
+            }, { openStreamForUri(it) })
 
-        postHandler.handlePostUrl("https://www.reddit.com/r/announcements/comments/hrrh23/")
+        postHandler.handleUrl("https://www.reddit.com/r/announcements/comments/hrrh23/") { }
 
         for (file in targetFiles) {
             assert(file.exists())
