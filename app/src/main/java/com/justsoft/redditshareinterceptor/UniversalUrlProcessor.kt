@@ -3,6 +3,7 @@ package com.justsoft.redditshareinterceptor
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaList
@@ -28,35 +29,58 @@ class UniversalUrlProcessor(
         RedditUrlHandler()
     )
 
-    fun handleUrl(url: String) {
+    fun handleUrl(url: String, progressCallback: (ProcessingProgress) -> Unit) {
         Log.d(LOG_TAG, "Starting url processing")
         val result = try {
-            startUrlProcessing(url)
+            startUrlProcessing(url, progressCallback)
         } catch (e: Exception) {
             return onError(e)
         }
         onUrlProcessed(result)
     }
 
-    private fun startUrlProcessing(url: String): ProcessingResult {
+    private fun startUrlProcessing(
+        url: String,
+        progressCallback: (ProcessingProgress) -> Unit
+    ): ProcessingResult {
         val urlHandler = selectUrlHandler(url)
         FirebaseAnalyticsHelper.getInstance().logEvent("select_url_handler") {
             param("url", url)
             param("handler_name", urlHandler.javaClass.simpleName)
         }
+        progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
 
         val unfilteredMediaList = urlHandler.processUrlAndGetMedia(url, requestHelper)
         Log.d(LOG_TAG, "Got unfiltered media, count: ${unfilteredMediaList.count()}")
+        progressCallback(
+            ProcessingProgress(
+                R.string.processing_media_state_loaded_media_variants,
+                35
+            )
+        )
 
         val filteredMediaList = filterMedia(unfilteredMediaList, MediaSpec())
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
+        progressCallback(
+            ProcessingProgress(
+                R.string.processing_media_state_filtered_media_variants,
+                40
+            )
+        )
 
         val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
-            downloadMedia(filteredMediaList)
+            downloadMedia(filteredMediaList) { progress: ProcessingProgress ->
+                progressCallback(
+                    ProcessingProgress(
+                        R.string.processing_media_state_downloading_media,
+                        40 + (0.6 * progress.overallProgress).toInt()
+                    )
+                )
+            }
         } else {
             emptyList()
         }
-        if(uris.isNotEmpty())
+        if (uris.isNotEmpty())
             Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
 
         return ProcessingResult(
@@ -67,10 +91,11 @@ class UniversalUrlProcessor(
     }
 
     private fun downloadMedia(
-        filteredMediaList: MediaList
+        filteredMediaList: MediaList,
+        downloadProgressCallback: (ProcessingProgress) -> Unit
     ): List<Uri> {
         return try {
-            downloader.downloadMediaList(filteredMediaList)
+            downloader.downloadMediaList(filteredMediaList, downloadProgressCallback)
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }
