@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor.model.media
 
-class MediaList(val listMediaContentType: MediaContentType, var caption: String = "") : ArrayList<MediaModel>() {
+class MediaList(val listMediaContentType: MediaContentType, var caption: String = "") :
+    ArrayList<MediaModel>() {
 
     private fun processSubList(mediaSpec: MediaSpec, sortedList: List<MediaModel>): MediaModel {
         val threshold = mediaSpec.getThresholdForType(listMediaContentType)
@@ -18,7 +19,7 @@ class MediaList(val listMediaContentType: MediaContentType, var caption: String 
             throw IllegalStateException("MediaList is empty!")
 
         if (this.count() == 1)
-            return mediaListOf(this.listMediaContentType, caption).also { addAll(this) }
+            return mediaListOf(this)
 
         val sortedList = this.sortedWith(compareBy(MediaModel::index, { -it.size }))
         return MediaList(listMediaContentType, caption).apply {
@@ -31,13 +32,16 @@ class MediaList(val listMediaContentType: MediaContentType, var caption: String 
     }
 }
 
-fun mediaListOf(mediaType: MediaContentType, caption: String = ""): MediaList
-    = MediaList(mediaType, caption)
+fun mediaListOf(mediaType: MediaContentType, caption: String = ""): MediaList =
+    MediaList(mediaType, caption)
 
 fun mediaListOf(contentType: MediaContentType): MediaList = mediaListOf(contentType, "")
 
 fun mediaListOf(caption: String, vararg media: MediaModel): MediaList =
     mediaListOf(media[0].mediaType, caption).apply { this.addAll(media) }
+
+fun mediaListOf(mediaList: MediaList): MediaList =
+    MediaList(mediaList.listMediaContentType, mediaList.caption).apply { this.addAll(mediaList) }
 
 fun mediaListOf(vararg media: MediaModel): MediaList =
     mediaListOf(media[0].mediaType).apply { this.addAll(media) }
