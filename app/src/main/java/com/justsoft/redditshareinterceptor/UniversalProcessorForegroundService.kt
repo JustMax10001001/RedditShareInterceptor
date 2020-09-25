@@ -20,10 +20,11 @@ import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
 
-class UniversalProcessorForegroundService: Service() {
+class UniversalProcessorForegroundService : Service() {
 
     private val mHandler = Handler(Looper.getMainLooper())
-    private val mBackgroundExecutor = Executors.newSingleThreadExecutor { Thread("UUFSBackgroundThread") }
+    private val mBackgroundExecutor =
+        Executors.newSingleThreadExecutor { Thread("UUFSBackgroundThread") }
 
     private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
         UniversalUrlProcessor(
@@ -57,17 +58,11 @@ class UniversalProcessorForegroundService: Service() {
         Log.e(LOG_TAG, "Error processing post", err)
         FirebaseCrashlytics.getInstance().recordException(err)
 
-        mHandler.post {
-            Toast.makeText(
-                applicationContext,
-                "Error processing post: ${err.message}",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+        longToast("Error processing post: ${err.message}")
     }
 
     private fun onResult(processingResult: ProcessingResult) {
-        mHandler.post {
+        executeOnMainThread {
             startActivity(
                 when (processingResult.contentType) {
                     MediaContentType.GALLERY -> prepareMediaMultipleIntent(
@@ -85,9 +80,17 @@ class UniversalProcessorForegroundService: Service() {
         }
     }
 
-    // END PROCESSOR HANDLER EVENTS
+// END PROCESSOR HANDLER EVENTS
 
-    // UTILITY METHODS
+// UTILITY METHODS
+
+    private fun longToast(message: String) {
+        executeOnMainThread {
+            Toast.makeText(
+                applicationContext, message, Toast.LENGTH_LONG
+            ).show()
+        }
+    }
 
     private fun executeOnMainThread(exec: () -> Unit) {
         mHandler.post(exec)
@@ -118,7 +121,7 @@ class UniversalProcessorForegroundService: Service() {
     private fun getMimeForContentType(mediaContentType: MediaContentType): String =
         contentTypeToMIME[mediaContentType] ?: error("No such key: $mediaContentType in MIME map")
 
-    // END UTILITY METHODS
+// END UTILITY METHODS
 
     companion object {
         private const val LOG_TAG = "UProcessorService"
