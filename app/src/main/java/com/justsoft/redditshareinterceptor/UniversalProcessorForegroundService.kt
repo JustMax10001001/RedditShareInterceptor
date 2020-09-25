@@ -8,9 +8,12 @@ import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
+import android.widget.Toast
 import androidx.core.app.JobIntentService
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
@@ -50,7 +53,37 @@ class UniversalProcessorForegroundService: Service() {
 
     // PROCESSOR HANDLER EVENTS
 
+    private fun onError(err: Throwable) {
+        Log.e(LOG_TAG, "Error processing post", err)
+        FirebaseCrashlytics.getInstance().recordException(err)
 
+        mHandler.post {
+            Toast.makeText(
+                applicationContext,
+                "Error processing post: ${err.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
+    }
+
+    private fun onResult(processingResult: ProcessingResult) {
+        mHandler.post {
+            startActivity(
+                when (processingResult.contentType) {
+                    MediaContentType.GALLERY -> prepareMediaMultipleIntent(
+                        processingResult.caption,
+                        processingResult.mediaUris
+                    )
+                    MediaContentType.TEXT -> prepareTextIntent(processingResult.caption)
+                    else -> prepareMediaIntent(
+                        processingResult.caption,
+                        processingResult.contentType,
+                        processingResult.mediaUris.first()
+                    )
+                }
+            )
+        }
+    }
 
     // END PROCESSOR HANDLER EVENTS
 
