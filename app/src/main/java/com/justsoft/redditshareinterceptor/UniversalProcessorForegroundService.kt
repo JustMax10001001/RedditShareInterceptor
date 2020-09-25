@@ -220,7 +220,7 @@ class UniversalProcessorForegroundService : Service() {
         notificationManager.createNotificationChannel(mChannel)
     }
 
-// END NOTIFICATION
+    // END NOTIFICATION
 
     // UTILITY METHODS
 

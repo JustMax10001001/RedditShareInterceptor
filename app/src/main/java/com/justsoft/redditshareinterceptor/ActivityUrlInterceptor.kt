@@ -8,7 +8,7 @@ import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 
-class ActivityRedditInterceptor : AppCompatActivity() {
+class ActivityUrlInterceptor : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
