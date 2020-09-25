@@ -33,8 +33,17 @@ class RedditGalleryPostProcessor : PostProcessor {
     private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
         return mediaListOf(MediaContentType.IMAGE).apply {
             runBlocking(Dispatchers.IO) {
-                redditPost.galleryImageUrls.forEach {
-                    add(MediaModel(it, MediaContentType.IMAGE, requestHelper.getContentLength(it)))
+                redditPost.galleryImageUrls.forEach { entry ->
+                    entry.value.forEach { url ->
+                        add(
+                            MediaModel(
+                                url,
+                                MediaContentType.IMAGE,
+                                requestHelper.getContentLength(url),        // get size
+                                entry.key       // index
+                            )
+                        )
+                    }
                 }
             }
         }

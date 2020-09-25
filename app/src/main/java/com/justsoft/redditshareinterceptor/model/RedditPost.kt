@@ -45,22 +45,24 @@ class RedditPost(
     val hasGallery: Boolean
         get() = postData.opt("media_metadata") != null
 
-    val galleryImageUrls: List<String> by lazy {
+    val galleryImageUrls: Map<Int, List<String>> by lazy {
         if (!hasGallery)
             throw IllegalStateException("This post does not contain media_metadata with image list")
 
-        val urlList = mutableListOf<String>()
+        val urlList = mutableMapOf<Int, MutableList<String>>()
         val mediaMetadata = postData.getJSONObject("media_metadata")
         val keysIterator = mediaMetadata.keys()
+        var i = 0
         while (keysIterator.hasNext()) {
             val mediaId = keysIterator.next()
             val mediaObj = mediaMetadata.getJSONObject(mediaId)
-            urlList.add(urlDecode(mediaObj.getJSONObject("s").getString("u")))     // source
+            urlList[i] = mutableListOf(urlDecode(mediaObj.getJSONObject("s").getString("u")))     // source
 
             val resolutions = mediaObj.getJSONArray("p")
-            for (i in 0 until resolutions.length()) {
-                urlList.add(urlDecode(resolutions.getJSONObject(i).getString("u")))
+            for (j in 0 until resolutions.length()) {
+                urlList[i]?.add(urlDecode(resolutions.getJSONObject(j).getString("u")))
             }
+            i++
         }
 
         urlList
