@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor.downloaders
 
 import android.net.Uri
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -11,7 +12,8 @@ class GifDownloader : MediaDownloader {
         mediaList: MediaList,
         requestHelper: RequestHelper,
         destinationUriCallback: (MediaContentType, Int) -> Uri,
-        outputStreamCallback: (Uri) -> OutputStream
+        outputStreamCallback: (Uri) -> OutputStream,
+        downloadProgressCallback: (ProcessingProgress) -> Unit
     ): List<Uri> {
         val uri = destinationUriCallback(MediaContentType.VIDEO, 0)
         requestHelper.downloadToOutputStream(
