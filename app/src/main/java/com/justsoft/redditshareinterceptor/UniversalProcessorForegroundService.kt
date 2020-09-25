@@ -203,11 +203,14 @@ class UniversalProcessorForegroundService : Service() {
         if (progress >= 0)
             notificationBuilder.setProgress(100, progress, false)
 
+        if (progress < 0 || progress >= 100)
+            notificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download_done)
+        else
+            notificationBuilder.setSmallIcon(android.R.drawable.stat_sys_download)
+
         return notificationBuilder
-            .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle(getString(R.string.processing_media))
             .setContentText(statusText)
-            .setOngoing(true)
             .build()
     }
 
