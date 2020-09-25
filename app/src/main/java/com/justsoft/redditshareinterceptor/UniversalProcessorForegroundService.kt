@@ -83,12 +83,17 @@ class UniversalProcessorForegroundService : Service() {
         Log.e(LOG_TAG, "Error processing post", err)
         FirebaseCrashlytics.getInstance().recordException(err)
 
-        longToast("Error processing post: ${err.message}")
+        longToast(getString(R.string.error_processing_url))
+        updateDownloadNotification(
+            -1,
+            getString(R.string.error_processing_url_extended).format(err.message)
+        )
+        stopForeground(false)
     }
 
     private fun onResult(processingResult: ProcessingResult) {
         executeOnMainThread {
-
+            updateDownloadNotification(100, R.string.media_processing_state_processed)
             startActivity(
                 when (processingResult.contentType) {
                     MediaContentType.GALLERY -> prepareMediaMultipleIntent(
@@ -103,6 +108,7 @@ class UniversalProcessorForegroundService : Service() {
                     )
                 }
             )
+            stopForeground(true)
         }
     }
 
@@ -168,9 +174,19 @@ class UniversalProcessorForegroundService : Service() {
         )
     }
 
+    private fun updateDownloadNotification(
+        progress: Int = 0,
+        statusText: String
+    ) {
+        mNotificationManager.notify(
+            DOWNLOADING_NOTIFICATION_ID,
+            buildNotification(progress, statusText)
+        )
+    }
+
     private fun buildNotification(
-        progress: Int = 50,
-        statusTextResId: Int = R.string.processing_media_state_starting
+        progress: Int = 0,
+        statusText: String
     ): Notification {
         val notificationBuilder =
             if (VERSION.SDK_INT >= VERSION_CODES.O) {
@@ -178,14 +194,22 @@ class UniversalProcessorForegroundService : Service() {
                 Notification.Builder(this, ONGOING_DOWNLOAD_CHANNEL_ID)
             } else
                 Notification.Builder(this)
+
+        if (progress >= 0)
+            notificationBuilder.setProgress(100, progress, false)
+
         return notificationBuilder
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setContentTitle(getString(R.string.processing_media))
-            .setContentText(getString(statusTextResId))
-            .setProgress(100, progress, false)
+            .setContentText(statusText)
             .setOngoing(true)
             .build()
     }
+
+    private fun buildNotification(
+        progress: Int = 0,
+        statusTextResId: Int = R.string.processing_media_state_starting
+    ): Notification = buildNotification(progress, getString(statusTextResId))
 
     @RequiresApi(VERSION_CODES.O)
     private fun buildNotificationChannel() {
