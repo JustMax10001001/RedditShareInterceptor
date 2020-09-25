@@ -162,7 +162,7 @@ class RedditProcessorService : JobIntentService() {
     // END UTILITY METHODS
 
     companion object {
-        const val LOG_TAG = "ProcessorService"
+        private const val LOG_TAG = "ProcessorService"
 
         private val contentTypeToFileNameMap = mapOf(
             MediaContentType.GIF to "gif.mp4",
