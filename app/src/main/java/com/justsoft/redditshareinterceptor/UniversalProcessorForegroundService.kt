@@ -1,13 +1,19 @@
 package com.justsoft.redditshareinterceptor
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.net.Uri
+import android.os.Build.VERSION
+import android.os.Build.VERSION_CODES
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
 import android.util.Log
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -44,6 +50,7 @@ class UniversalProcessorForegroundService : Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(LOG_TAG, "onStartCommand()")
+
 
         return START_NOT_STICKY
     }
@@ -133,7 +140,35 @@ class UniversalProcessorForegroundService : Service() {
 
     // END INTENT CREATION
 
-    // UTILITY METHODS
+    // NOTIFICATION
+
+    private fun buildNotification(): Notification {
+        val notificationBuilder =
+            if (VERSION.SDK_INT >= VERSION_CODES.O) {
+                buildNotificationChannel()
+                Notification.Builder(this, ONGOING_DOWNLOAD_CHANNEL_ID)
+            } else
+                Notification.Builder(this,)
+        return notificationBuilder
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setContentTitle("Rolling")
+            .setContentText("Keep rolling, rolling, rolling")
+            .setProgress(100, 50, false)
+            .build()
+    }
+
+    @RequiresApi(VERSION_CODES.O)
+    private fun buildNotificationChannel() {
+        val name = getString(R.string.ongoing_media_downlaoad)
+        val importance = NotificationManager.IMPORTANCE_LOW
+        val mChannel = NotificationChannel(ONGOING_DOWNLOAD_CHANNEL_ID, name, importance)
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(mChannel)
+    }
+
+// END NOTIFICATION
+
+// UTILITY METHODS
 
     private fun longToast(message: String) {
         executeOnMainThread {
@@ -172,10 +207,12 @@ class UniversalProcessorForegroundService : Service() {
     private fun getMimeForContentType(mediaContentType: MediaContentType): String =
         contentTypeToMIME[mediaContentType] ?: error("No such key: $mediaContentType in MIME map")
 
-    // END UTILITY METHODS
+// END UTILITY METHODS
 
     companion object {
         private const val LOG_TAG = "UProcessorService"
+
+        private const val ONGOING_DOWNLOAD_CHANNEL_ID = "ongoing_download"
 
         private val contentTypeToFileNameMap = mapOf(
             MediaContentType.GIF to "gif.mp4",

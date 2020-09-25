@@ -5,4 +5,5 @@
     <string name="interceptor_label">Download media and share</string>
     <string name="selected_file">Selected file: {0}</string>
     <string name="provider_name">com.justsoft.redditshareinterceptor.provider</string>
+    <string name="ongoing_media_downlaoad">Ongoing media download</string>
 </resources>
