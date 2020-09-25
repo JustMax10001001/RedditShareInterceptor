@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import java.io.OutputStream
 
-class GalleryDownloader: MediaDownloader {
+class GalleryDownloader : MediaDownloader {
     override fun downloadMedia(
         mediaList: MediaList,
         requestHelper: RequestHelper,
@@ -19,12 +19,24 @@ class GalleryDownloader: MediaDownloader {
     ): List<Uri> {
         val uris = mutableListOf<Uri>()
         runBlocking(Dispatchers.IO) {
-            for (i in 0 until mediaList.count()) {
-                val uri = destinationUriCallback(MediaContentType.VIDEO, 0)
+            val imageCount = mediaList.count()
+            var prevProgress = 0
+            var totalProgress = 0
+            for (i in 0 until imageCount) {
+                val uri = destinationUriCallback(MediaContentType.GALLERY, i)
                 requestHelper.downloadToOutputStream(
-                    mediaList[0].downloadUrl,
+                    mediaList[i].downloadUrl,
                     outputStreamCallback(uri)
-                )
+                ) { processingProgress ->
+                    // requestHelper returns the total amount of bytes read
+                    totalProgress += (processingProgress.overallProgress / mediaList[i].size.toDouble() * 100 / imageCount).toInt()
+                    if (totalProgress != prevProgress) {
+                        downloadProgressCallback(
+                            ProcessingProgress(-1, totalProgress)
+                        )
+                        prevProgress = totalProgress
+                    }
+                }
                 uris.add(uri)
             }
         }

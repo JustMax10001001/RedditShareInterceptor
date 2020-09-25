@@ -2,6 +2,7 @@ package com.justsoft.redditshareinterceptor.util
 
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import org.json.JSONObject
 import java.io.OutputStream
 import java.io.OutputStreamWriter
@@ -41,7 +42,11 @@ interface RequestHelper {
         return length
     }
 
-    fun downloadToOutputStream(requestUrl: String, outputStream: OutputStream) {
+    fun downloadToOutputStream(
+        requestUrl: String,
+        outputStream: OutputStream,
+        downloadProgressCallback: (ProcessingProgress) -> Unit
+    ) {
         val sourceConnection: HttpURLConnection =
             URL(requestUrl).openConnection() as HttpURLConnection
         outputStream.use { fileOutputStream ->
@@ -57,6 +62,13 @@ interface RequestHelper {
                     fileOutputStream.write(buffer, 0, bytesRead)
 
                     downloadSize += bytesRead
+
+                    downloadProgressCallback(
+                        ProcessingProgress(
+                            -1,
+                            downloadSize.toInt()
+                        )
+                    )  // report how many bytes are already downloaded
                 }
 
                 val timeElapsed = System.currentTimeMillis() - downloadStartTime
