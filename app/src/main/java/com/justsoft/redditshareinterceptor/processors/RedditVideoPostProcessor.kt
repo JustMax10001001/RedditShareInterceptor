@@ -3,9 +3,9 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
+import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -55,7 +55,7 @@ class RedditVideoPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): MediaDownloadList {
         val urls = savedState.getStringArray(BUNDLE_URLS)
             ?: throw IllegalStateException("savedState does not contain $BUNDLE_URLS key")
         val isGif = savedState.getBoolean(BUNDLE_IS_GIF)
@@ -67,16 +67,19 @@ class RedditVideoPostProcessor : PostProcessor {
         isGif: Boolean,
         directUrls: Array<String>,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): MediaDownloadList {
         val contentType = if (isGif) MediaContentType.GIF else MediaContentType.VIDEO
-        val list = mediaListOf(contentType)
+        val list = mediaDownloadListOf(contentType)
         runBlocking(Dispatchers.IO) {
-            for (url in directUrls)
+            for (url in directUrls) {
                 launch {
                     list.add(
-                        MediaModel(url, contentType, requestHelper.getContentLength(url))
+                        MediaDownloadObject(url, contentType).apply {
+                            metadata.size = requestHelper.getContentLength(url)
+                        }
                     )
                 }
+            }
         }
         return list
     }

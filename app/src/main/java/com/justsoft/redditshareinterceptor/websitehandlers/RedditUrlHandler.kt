@@ -9,7 +9,7 @@ import com.justsoft.redditshareinterceptor.PostContentTypeAcquiringException
 import com.justsoft.redditshareinterceptor.PostContentUrlAcquiringException
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -33,7 +33,7 @@ class RedditUrlHandler : UrlHandler {
     override fun isHandlerSuitableForUrl(url: String): Boolean =
         Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
-    override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
+    override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaDownloadList {
         val stopwatch = Stopwatch()
 
         val cleanUrl = getPostApiUrl(url)
@@ -85,7 +85,7 @@ class RedditUrlHandler : UrlHandler {
         postObject: RedditPost,
         postProcessorBundle: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): MediaDownloadList {
         return try {
             postProcessor.getAllPossibleMediaModels(
                 postObject,
@@ -132,14 +132,15 @@ class RedditUrlHandler : UrlHandler {
         return "https://www.reddit.com/by_id/t3_$id/"
     }
 
-    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
-        RedditPost(
-            requestHelper.readHttpJsonResponse("$postUrl.json")
-                .getJSONObject("data")
+    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost {
+        val response = requestHelper.readHttpJsonResponse("$postUrl.json")
+        return RedditPost(
+            response.getJSONObject("data")
                 .getJSONArray("children")
                 .getJSONObject(0)
                 .getJSONObject("data")
         )
+    }
 
     companion object {
         private const val LOG_TAG = "RedditHandler"

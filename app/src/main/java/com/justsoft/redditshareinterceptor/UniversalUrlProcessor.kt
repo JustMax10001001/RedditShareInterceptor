@@ -6,8 +6,8 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaSpec
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaQualitySpec
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
@@ -17,14 +17,14 @@ import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
-    createUri: (MediaContentType, Int) -> Uri,
+    private val createUri: (MediaContentType, Int) -> Uri,
     openOutputStream: (Uri) -> OutputStream
 ) {
 
     private var onUrlProcessed: (ProcessingResult) -> Unit = { }
     private var onError: (Throwable) -> Unit = { }
 
-    private val downloader = UniversalMediaDownloader(requestHelper, createUri, openOutputStream)
+    private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -65,7 +65,7 @@ class UniversalUrlProcessor(
             )
         )
 
-        val filteredMediaList = filterMedia(unfilteredMediaList, MediaSpec())
+        val filteredMediaList = filterMedia(unfilteredMediaList, MediaQualitySpec.PRESET_HIGH)
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
         progressCallback(
             ProcessingProgress(
@@ -74,7 +74,10 @@ class UniversalUrlProcessor(
             )
         )
 
-        val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
+        generateDestinationUris(filteredMediaList)
+        Log.d(LOG_TAG, "Generated destination Uris")
+
+        if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
             downloadMedia(filteredMediaList) { progress: ProcessingProgress ->
                 progressCallback(
                     ProcessingProgress(
@@ -83,23 +86,35 @@ class UniversalUrlProcessor(
                     )
                 )
             }
-        } else {
-            emptyList()
         }
-        if (uris.isNotEmpty())
-            Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
+
+        if (filteredMediaList.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
 
         return ProcessingResult(
             filteredMediaList.listMediaContentType,
             filteredMediaList.caption,
-            uris
+            filteredMediaList
         )
     }
 
+    private fun generateDestinationUris(filteredDownloadList: MediaDownloadList) {
+        try {
+            filteredDownloadList.forEach { media ->
+                media.metadata.uri = createUri(
+                    filteredDownloadList.listMediaContentType,
+                    media.galleryIndex
+                )
+            }
+        } catch (e: Exception) {
+            throw UriCreationException(cause = e)
+        }
+    }
+
     private fun downloadMedia(
-        filteredMediaList: MediaList,
+        filteredMediaList: MediaDownloadList,
         downloadProgressCallback: (ProcessingProgress) -> Unit
-    ): List<Uri> {
+    ) {
         return try {
             downloader.downloadMediaList(filteredMediaList, downloadProgressCallback)
         } catch (e: Exception) {
@@ -108,9 +123,9 @@ class UniversalUrlProcessor(
     }
 
     private fun filterMedia(
-        unfilteredMediaList: MediaList,
-        filterSpec: MediaSpec
-    ): MediaList =
+        unfilteredMediaList: MediaDownloadList,
+        filterSpec: MediaQualitySpec = MediaQualitySpec.PRESET_HIGH
+    ): MediaDownloadList =
         try {
             unfilteredMediaList.getMostSuitableMedia(filterSpec)
         } catch (e: Exception) {

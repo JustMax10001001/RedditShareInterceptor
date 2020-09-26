@@ -1,40 +1,30 @@
 package com.justsoft.redditshareinterceptor
 
 import android.net.Uri
-import com.justsoft.redditshareinterceptor.downloaders.*
+import com.justsoft.redditshareinterceptor.downloaders.MultipleFileDownloader
+import com.justsoft.redditshareinterceptor.downloaders.SingleFileDownloader
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.io.OutputStream
 
 class UniversalMediaDownloader(
-    private val requestHelper: RequestHelper,
-    private val destinationUriCallback: (MediaContentType, Int) -> Uri,
-    private val outputStreamCallback: (Uri) -> OutputStream
+    requestHelper: RequestHelper,
+    outputStreamCallback: (Uri) -> OutputStream
 ) {
 
+    private val multipleFileDownloader = MultipleFileDownloader(requestHelper, outputStreamCallback)
+    private val singleFileDownloader = SingleFileDownloader(requestHelper, outputStreamCallback)
+
     fun downloadMediaList(
-        mediaList: MediaList,
+        mediaList: MediaDownloadList,
         downloadProgressCallback: (ProcessingProgress) -> Unit
-    ): List<Uri> {
-        return selectDownloaderForMediaType(mediaList.listMediaContentType)
-            .downloadMedia(
-                mediaList,
-                requestHelper,
-                destinationUriCallback,
-                outputStreamCallback,
-                downloadProgressCallback
-            )
+    ) {
+        if (mediaList.listMediaContentType == MediaContentType.GALLERY) {
+            multipleFileDownloader.downloadFiles(mediaList, downloadProgressCallback)
+        } else {
+            singleFileDownloader.downloadFile(mediaList.first(), downloadProgressCallback)
+        }
     }
-
-    private fun selectDownloaderForMediaType(mediaContentType: MediaContentType): MediaDownloader =
-        downloaders[mediaContentType] ?: error("No downloader for type $mediaContentType")
-
-    private val downloaders: Map<MediaContentType, MediaDownloader> = mapOf(
-        MediaContentType.GIF to GifDownloader(),
-        MediaContentType.VIDEO to VideoDownloader(),
-        MediaContentType.IMAGE to ImageDownloader(),
-        MediaContentType.GALLERY to GalleryDownloader()
-    )
 }

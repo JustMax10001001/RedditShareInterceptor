@@ -9,3 +9,5 @@ fun urlEncode(url: String): String =
 fun urlDecode(encodedUrl: String): String =
     URLDecoder.decode(encodedUrl, "UTF-8")
         .replace("&amp;", "&")
+        .replace("&lt;", "<")
+        .replace("&rt;", ">")
