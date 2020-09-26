@@ -11,35 +11,6 @@ import kotlin.math.abs
 class MediaDownloadList(val listMediaContentType: MediaContentType, var caption: String = "") :
     ArrayList<MediaDownloadObject>() {
 
-    /*private fun processSubList(mediaSpec: MediaQualitySpec, sortedList: List<MediaDownloadObject>, isVideo: Boolean): MediaDownloadObject {
-        val threshold = mediaSpec.getThresholdForType(listMediaContentType)
-        val iterator = sortedList.iterator()
-        while (iterator.hasNext()) {
-            val file = iterator.next()
-            if (file.size <= threshold)
-                return file
-        }
-        return sortedList.last()
-    }
-
-    fun getMostSuitableMedia(mediaSpec: MediaQualitySpec): MediaDownloadList {
-        if (this.isEmpty())
-            throw IllegalStateException("MediaList is empty!")
-
-        if (this.count() == 1)
-            return mediaDownloadListOf(this)
-
-
-
-        val sortedList = this.sortedWith(compareBy(MediaDownloadObject::galleryIndex, { -it.size }))
-        return MediaDownloadList(listMediaContentType, caption).apply {
-            addAll(
-                sortedList
-                    .groupBy(MediaDownloadObject::galleryIndex)
-                    .map { processSubList(mediaSpec, it.value) }
-            )
-        }
-    }*/
     fun getMostSuitableMedia(mediaQualitySpec: MediaQualitySpec): MediaDownloadList {
         if (this.isEmpty())
             throw IllegalStateException("MediaList is empty!")
