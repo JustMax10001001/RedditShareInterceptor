@@ -12,6 +12,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.DEFAULT_ALL
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
@@ -209,12 +210,13 @@ class UniversalProcessorForegroundService : Service() {
         val notificationBuilder = notificationBuilder(DOWNLOAD_FINISHED_CHANNEL_ID)
 
         if (VERSION.SDK_INT < VERSION_CODES.O)
-            notificationBuilder.priority = Notification.PRIORITY_HIGH
+            notificationBuilder.priority = NotificationCompat.PRIORITY_HIGH
 
         notificationBuilder
             .setSmallIcon(R.drawable.ic_check)
             .setContentTitle(getString(R.string.notification_download_finished_title))
             .setAutoCancel(true)
+            .setDefaults(DEFAULT_ALL)
             .addAction(
                 NotificationCompat.Action.Builder(
                     R.drawable.ic_send,
