@@ -14,7 +14,6 @@ import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
-import org.json.JSONArray
 import java.util.regex.Pattern
 
 class RedditUrlHandler : UrlHandler {
@@ -37,7 +36,8 @@ class RedditUrlHandler : UrlHandler {
     override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
         val stopwatch = Stopwatch()
 
-        val cleanUrl = extractCleanUrl(url)
+        val cleanUrl = getPostApiUrl(url)
+        Log.d(LOG_TAG, "Got post api link $cleanUrl")
 
         stopwatch.start()
         val redditPost = downloadRedditPost(cleanUrl, requestHelper)
@@ -126,21 +126,15 @@ class RedditUrlHandler : UrlHandler {
         }
     }
 
-    private fun getPostUrl(url: String): String {
+    private fun getPostApiUrl(url: String): String {
         val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/(\\w+)/)")
-        val id = pattern.matcher(url).apply { this.find() }.group(1)!!
+        val id = pattern.matcher(url).apply { this.find() }.group(2)!!
         return "https://www.reddit.com/by_id/t3_$id/"
-    }
-
-    private fun extractCleanUrl(url: String): String {
-        val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)")
-        return pattern.matcher(url).apply { this.find() }.group()
     }
 
     fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
         RedditPost(
-            JSONArray(requestHelper.readHttpTextResponse("$postUrl.json"))
-                .getJSONObject(0)
+            requestHelper.readHttpJsonResponse("$postUrl.json")
                 .getJSONObject("data")
                 .getJSONArray("children")
                 .getJSONObject(0)
