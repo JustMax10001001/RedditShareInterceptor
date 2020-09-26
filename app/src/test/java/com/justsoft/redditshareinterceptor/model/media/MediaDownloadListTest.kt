@@ -6,10 +6,10 @@ import org.junit.Test
 class MediaDownloadListTest {
 
     private fun mockVideoMedia(size: Long) =
-        MediaDownloadObject("mock://vid.eo", MediaContentType.VIDEO, size)
+        MediaDownloadObject("mock://vid.eo", MediaContentType.VIDEO)
 
     private fun mockImagesForGalleryIndex(index: Int, sizes: Sequence<Long>): Sequence<MediaDownloadObject> =
-        sizes.map { MediaDownloadObject("mock://galle.ry", MediaContentType.GALLERY, it, index) }
+        sizes.map { MediaDownloadObject("mock://galle.ry", MediaContentType.GALLERY, index) }
 
     private fun mockGallery(): Sequence<MediaDownloadObject> {
         val sizeSequence = generateSequence(6.toLong()) { it + 5 }
@@ -28,7 +28,7 @@ class MediaDownloadListTest {
             )
         )
         val mockSpec = MediaSpec(videoSizeThreshold = 2)
-        assertEquals(2, mediaList.getMostSuitableMedia(mockSpec)[0].size)
+        assertEquals(2, mediaList.getMostSuitableMedia(mockSpec)[0].metadata.size)
     }
 
     @Test
@@ -42,7 +42,7 @@ class MediaDownloadListTest {
             )
         )
         val mockSpec = MediaSpec(videoSizeThreshold = 4)
-        assertEquals(3, mediaList.getMostSuitableMedia(mockSpec)[0].size)
+        assertEquals(3, mediaList.getMostSuitableMedia(mockSpec)[0].metadata.size)
     }
 
     @Test
@@ -56,7 +56,7 @@ class MediaDownloadListTest {
             )
         )
         val mockSpec = MediaSpec(videoSizeThreshold = 2)
-        assertEquals(3, mediaList.getMostSuitableMedia(mockSpec)[0].size)
+        assertEquals(3, mediaList.getMostSuitableMedia(mockSpec)[0].metadata.size)
     }
 
     @Test
@@ -65,7 +65,7 @@ class MediaDownloadListTest {
         val mediaList = MediaDownloadList(MediaContentType.GALLERY)
         mediaList.addAll(mockGallery().take(25).toList())
         mediaList.getMostSuitableMedia(mockSpec).forEach {
-            assertEquals(11, it.size)
+            assertEquals(11, it.metadata.size)
         }
     }
 
@@ -75,7 +75,7 @@ class MediaDownloadListTest {
         val mediaList = MediaDownloadList(MediaContentType.GALLERY)
         mediaList.addAll(mockGallery().take(25).toList())
         mediaList.getMostSuitableMedia(mockSpec).forEach {
-            assertEquals(6, it.size)
+            assertEquals(6, it.metadata.size)
         }
     }
 }
