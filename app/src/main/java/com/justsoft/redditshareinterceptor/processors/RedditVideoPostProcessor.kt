@@ -71,12 +71,15 @@ class RedditVideoPostProcessor : PostProcessor {
         val contentType = if (isGif) MediaContentType.GIF else MediaContentType.VIDEO
         val list = mediaDownloadListOf(contentType)
         runBlocking(Dispatchers.IO) {
-            for (url in directUrls)
+            for (url in directUrls) {
                 launch {
                     list.add(
-                        MediaDownloadObject(url, contentType, requestHelper.getContentLength(url))
+                        MediaDownloadObject(url, contentType).apply {
+                            metadata.size = requestHelper.getContentLength(url)
+                        }
                     )
                 }
+            }
         }
         return list
     }
