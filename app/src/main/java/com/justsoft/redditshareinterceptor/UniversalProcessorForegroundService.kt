@@ -98,22 +98,23 @@ class UniversalProcessorForegroundService : Service() {
     }
 
     private fun onResult(processingResult: ProcessingResult) {
+        Log.d(LOG_TAG, "Processing succeeded")
         executeOnMainThread {
             updateDownloadNotification(100, R.string.processing_media_state_processed)
-            startActivity(
-                when (processingResult.contentType) {
-                    MediaContentType.GALLERY -> prepareMediaMultipleIntent(
-                        processingResult.caption,
-                        processingResult.mediaUris
-                    )
-                    MediaContentType.TEXT -> prepareTextIntent(processingResult.caption)
-                    else -> prepareMediaIntent(
-                        processingResult.caption,
-                        processingResult.contentType,
-                        processingResult.mediaUris.first()
-                    )
-                }
-            )
+            val sendIntent = when (processingResult.contentType) {
+                MediaContentType.GALLERY -> prepareMediaMultipleIntent(
+                    processingResult.caption,
+                    processingResult.mediaUris
+                )
+                MediaContentType.TEXT -> prepareTextIntent(processingResult.caption)
+                else -> prepareMediaIntent(
+                    processingResult.caption,
+                    processingResult.contentType,
+                    processingResult.mediaUris.first()
+                )
+            }
+            Log.d(LOG_TAG, "Intent constructed, starting selector")
+            startActivity(sendIntent)
             stopForeground(true)
         }
     }
