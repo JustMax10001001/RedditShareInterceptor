@@ -35,7 +35,7 @@ class GfycatPostProcessor : PostProcessor {
         val keysIterator = contentUrls.keys()
         while (keysIterator.hasNext()) {
             val formatType = keysIterator.next()
-            if (formatType == "webp" || formatType == "webm" || formatType == "mobilePoster")
+            if (formatType != "mp4" && formatType != "mobile")
                 continue
 
             val mediaObj = contentUrls.getJSONObject(formatType)
@@ -43,9 +43,10 @@ class GfycatPostProcessor : PostProcessor {
             allMediaList.add(
                 MediaDownloadObject(
                     mediaObj.getString("url"),
-                    MediaContentType.VIDEO,
-                    mediaObj.getLong("size")
-                )
+                    MediaContentType.VIDEO
+                ).apply {
+                    metadata.size = mediaObj.getLong("size")
+                }
             )
         }
         return allMediaList
