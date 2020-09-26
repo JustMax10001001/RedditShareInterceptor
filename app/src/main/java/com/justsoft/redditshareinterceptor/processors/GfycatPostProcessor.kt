@@ -3,9 +3,9 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
+import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.util.regex.Pattern
 
@@ -23,14 +23,14 @@ class GfycatPostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): MediaDownloadList {
         val gfycatResponse = requestHelper
             .readHttpJsonResponse("$GFYCAT_API_GIF_REQUEST${getGfycatId(redditPost.url)}")
         val contentUrls = gfycatResponse
             .getJSONObject("gfyItem")
             .getJSONObject("content_urls")
 
-        val allMediaList = mediaListOf(MediaContentType.VIDEO)
+        val allMediaList = mediaDownloadListOf(MediaContentType.VIDEO)
 
         val keysIterator = contentUrls.keys()
         while (keysIterator.hasNext()) {
@@ -41,7 +41,7 @@ class GfycatPostProcessor : PostProcessor {
             val mediaObj = contentUrls.getJSONObject(formatType)
 
             allMediaList.add(
-                MediaModel(
+                MediaDownloadObject(
                     mediaObj.getString("url"),
                     MediaContentType.VIDEO,
                     mediaObj.getLong("size")

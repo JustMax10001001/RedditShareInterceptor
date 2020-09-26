@@ -4,7 +4,7 @@ import android.net.Uri
 import com.justsoft.redditshareinterceptor.downloaders.*
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.io.OutputStream
 
@@ -15,7 +15,7 @@ class UniversalMediaDownloader(
 ) {
 
     fun downloadMediaList(
-        mediaList: MediaList,
+        mediaList: MediaDownloadList,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ): List<Uri> {
         return selectDownloaderForMediaType(mediaList.listMediaContentType)

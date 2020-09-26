@@ -3,9 +3,9 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
+import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.util.regex.Pattern
 
@@ -25,33 +25,33 @@ class StreamablePostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): MediaDownloadList {
         return getPossibleDownloads(requestHelper, redditPost)
     }
 
     private fun getPossibleDownloads(
         requestHelper: RequestHelper,
         redditPost: RedditPost
-    ): MediaList {
+    ): MediaDownloadList {
         val apiResponse = requestHelper.readHttpJsonResponse(
             "$STREAMABLE_API_URL/videos/${getVideoCode(redditPost.url)}"
         )
         val filesObj = apiResponse
             .getJSONObject("files")
-        val videos = mediaListOf(MediaContentType.VIDEO)
+        val videos = mediaDownloadListOf(MediaContentType.VIDEO)
         filesObj
             .keys()
             .forEach {
                 val mediaObj = filesObj.getJSONObject(it)
                 videos.add(
                     if (it != "original" || apiResponse.isNull("source"))
-                        MediaModel(
+                        MediaDownloadObject(
                             mediaObj.getString("url"),
                             MediaContentType.VIDEO,
                             mediaObj.getLong("size")
                         )
                     else
-                        MediaModel(
+                        MediaDownloadObject(
                             apiResponse.getString("source"),
                             MediaContentType.VIDEO,
                             mediaObj.getLong("size")

@@ -3,9 +3,9 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
+import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -29,15 +29,15 @@ class RedditImagePostProcessor : PostProcessor {
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList =
+    ): MediaDownloadList =
         getMediaList(redditPost, requestHelper)
 
 
-    private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaList {
-        return mediaListOf(MediaContentType.IMAGE).apply {
+    private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaDownloadList {
+        return mediaDownloadListOf(MediaContentType.IMAGE).apply {
             runBlocking(Dispatchers.IO) {
                 redditPost.previewImages.forEach {
-                    add(MediaModel(it, MediaContentType.IMAGE, requestHelper.getContentLength(it)))
+                    add(MediaDownloadObject(it, MediaContentType.IMAGE, requestHelper.getContentLength(it)))
                 }
             }
         }

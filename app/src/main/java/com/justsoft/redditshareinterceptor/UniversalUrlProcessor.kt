@@ -6,7 +6,7 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaSpec
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -96,8 +96,10 @@ class UniversalUrlProcessor(
         )
     }
 
+    //private fun generateDestinationUris(filteredDownloadList: MediaDownloadList)
+
     private fun downloadMedia(
-        filteredMediaList: MediaList,
+        filteredMediaList: MediaDownloadList,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ): List<Uri> {
         return try {
@@ -108,9 +110,9 @@ class UniversalUrlProcessor(
     }
 
     private fun filterMedia(
-        unfilteredMediaList: MediaList,
+        unfilteredMediaList: MediaDownloadList,
         filterSpec: MediaSpec
-    ): MediaList =
+    ): MediaDownloadList =
         try {
             unfilteredMediaList.getMostSuitableMedia(filterSpec)
         } catch (e: Exception) {
