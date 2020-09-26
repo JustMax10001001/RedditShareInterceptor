@@ -1,6 +1,6 @@
 package com.justsoft.redditshareinterceptor.model.media
 
-class MediaSpec(
+class MediaSpecLegacy(
     videoSizeThreshold: Long = RECOMMENDED_VIDEO_SIZE_THRESHOLD,
     gifSizeThreshold: Long = RECOMMENDED_GIF_SIZE_THRESHOLD,
     imageSizeThreshold: Long = RECOMMENDED_IMAGE_SIZE_THRESHOLD,

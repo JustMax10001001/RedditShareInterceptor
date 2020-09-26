@@ -7,7 +7,7 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
-import com.justsoft.redditshareinterceptor.model.media.MediaSpec
+import com.justsoft.redditshareinterceptor.model.media.MediaQualitySpec
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
@@ -65,7 +65,7 @@ class UniversalUrlProcessor(
             )
         )
 
-        val filteredMediaList = filterMedia(unfilteredMediaList, MediaSpec())
+        val filteredMediaList = filterMedia(unfilteredMediaList, MediaQualitySpec.PRESET_HIGH)
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
         progressCallback(
             ProcessingProgress(
@@ -124,7 +124,7 @@ class UniversalUrlProcessor(
 
     private fun filterMedia(
         unfilteredMediaList: MediaDownloadList,
-        filterSpec: MediaSpec
+        filterSpec: MediaQualitySpec = MediaQualitySpec.PRESET_HIGH
     ): MediaDownloadList =
         try {
             unfilteredMediaList.getMostSuitableMedia(filterSpec)
