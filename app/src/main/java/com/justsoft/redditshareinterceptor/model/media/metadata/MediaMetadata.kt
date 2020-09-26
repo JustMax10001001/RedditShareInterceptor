@@ -24,6 +24,9 @@ class MediaMetadata {
             propertyMap[KEY_DURATION_SECONDS] = value
         }
 
+    /**
+     * Bitrate in bps
+     */
     var bitrate: Int
         get() = tryGet(KEY_BITRATE)
         set(value) {
