@@ -4,7 +4,6 @@ import com.justsoft.redditshareinterceptor.NoSuitableProcessorException
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.TestRequestHelper
-import org.json.JSONArray
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
@@ -18,7 +17,10 @@ class RedditUrlHandlerTest {
     @Test
     fun testPostObjectDownload() {
         val post =
-            redditPostHandler.downloadRedditPost("https://www.reddit.com/r/feedthememes/comments/ilt7jo/", requestHelper)
+            redditPostHandler.downloadRedditPost(
+                "https://www.reddit.com/by_id/t3_ilt7jo/",
+                requestHelper
+            )
         assertEquals(post.title, "Let's not forget the original meme mod")
     }
 
@@ -27,7 +29,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/feedthememes/comments/ilt7jo/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_ilt7jo/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject()
@@ -43,7 +45,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/techsupportgore/comments/ilrwy8/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_ilrwy8/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -63,7 +65,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/announcements/comments/hrrh23/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_hrrh23/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -83,7 +85,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/feedthememes/comments/ilt7jo/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_ilt7jo/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -103,7 +105,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/Unexpected/comments/ilrghf/\""
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_ilrghf/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -123,7 +125,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/Eyebleach/comments/gzn5on/\""
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_gzn5on/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -143,7 +145,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/Eyebleach/comments/gzn5on/\""
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("$requestUrl.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_gzn5on/.json"))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
@@ -169,9 +171,8 @@ class RedditUrlHandlerTest {
     }
 
     private fun createMockPostJsonResponse(post: JSONObject): String {
-        val arr = JSONArray("[{\"data\": {\"children\": []}}]")
-        arr.getJSONObject(0)
-            .getJSONObject("data")
+        val arr = JSONObject("{\"data\": {\"children\": []}}")
+        arr.getJSONObject("data")
             .getJSONArray("children")
             .put(post)
         return arr.toString()
