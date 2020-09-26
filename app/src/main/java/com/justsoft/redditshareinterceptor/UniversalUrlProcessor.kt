@@ -17,14 +17,14 @@ import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
-    createUri: (MediaContentType, Int) -> Uri,
+    private val createUri: (MediaContentType, Int) -> Uri,
     openOutputStream: (Uri) -> OutputStream
 ) {
 
     private var onUrlProcessed: (ProcessingResult) -> Unit = { }
     private var onError: (Throwable) -> Unit = { }
 
-    private val downloader = UniversalMediaDownloader(requestHelper, createUri, openOutputStream)
+    private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -74,6 +74,9 @@ class UniversalUrlProcessor(
             )
         )
 
+        generateDestinationUris(filteredMediaList)
+        Log.d(LOG_TAG, "Generated destination Uris")
+
         val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
             downloadMedia(filteredMediaList) { progress: ProcessingProgress ->
                 progressCallback(
@@ -96,7 +99,18 @@ class UniversalUrlProcessor(
         )
     }
 
-    //private fun generateDestinationUris(filteredDownloadList: MediaDownloadList)
+    private fun generateDestinationUris(filteredDownloadList: MediaDownloadList) {
+        try {
+            filteredDownloadList.forEach { media ->
+                media.metadata.uri = createUri(
+                    filteredDownloadList.listMediaContentType,
+                    media.galleryIndex
+                )
+            }
+        } catch (e: Exception) {
+            throw UriCreationException(cause = e)
+        }
+    }
 
     private fun downloadMedia(
         filteredMediaList: MediaDownloadList,
