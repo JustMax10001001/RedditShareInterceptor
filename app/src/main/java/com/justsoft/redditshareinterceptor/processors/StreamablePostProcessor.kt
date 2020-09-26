@@ -47,15 +47,13 @@ class StreamablePostProcessor : PostProcessor {
                     if (it != "original" || apiResponse.isNull("source"))
                         MediaDownloadObject(
                             mediaObj.getString("url"),
-                            MediaContentType.VIDEO,
-                            mediaObj.getLong("size")
-                        )
+                            MediaContentType.VIDEO
+                        ).apply { metadata.bitrate = mediaObj.getInt("bitrate") }
                     else
                         MediaDownloadObject(
                             apiResponse.getString("source"),
-                            MediaContentType.VIDEO,
-                            mediaObj.getLong("size")
-                        )
+                            MediaContentType.VIDEO
+                        ).apply { metadata.bitrate = apiResponse.getInt("bitrate") }
                 )
             }
         return videos
