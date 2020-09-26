@@ -10,6 +10,7 @@ import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.model.media.MediaSpec
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.Stopwatch
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
 import java.io.OutputStream
@@ -30,12 +31,17 @@ class UniversalUrlProcessor(
     )
 
     fun handleUrl(url: String, progressCallback: (ProcessingProgress) -> Unit) {
+        val stopwatch = Stopwatch()
         Log.d(LOG_TAG, "Starting url processing")
+        stopwatch.start()
         val result = try {
             startUrlProcessing(url, progressCallback)
         } catch (e: Exception) {
+            Log.e(LOG_TAG, "Processing failed in ${stopwatch.stopAndGetTimeElapsed()} ms")
             return onError(e)
         }
+        Log.d(LOG_TAG, "Processing succeeded in ${stopwatch.stopAndGetTimeElapsed()} ms")
+        result.processingTime = stopwatch.timeElapsed()
         onUrlProcessed(result)
     }
 

@@ -18,4 +18,7 @@
 
     <string name="error_processing_url">Error processing post</string>
     <string name="error_processing_url_extended">Error processing post: %s</string>
+    <string name="notification_download_finished_title">Download finished!</string>
+    <string name="notification_download_finished_action_send">SEND</string>
+    <string name="media_download_finished">Download finished notification</string>
 </resources>
