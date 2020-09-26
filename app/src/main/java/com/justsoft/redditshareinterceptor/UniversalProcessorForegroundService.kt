@@ -33,6 +33,7 @@ import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
+import java.util.stream.Collectors
 
 class UniversalProcessorForegroundService : Service() {
 
@@ -133,7 +134,8 @@ class UniversalProcessorForegroundService : Service() {
 
     private fun onProgress(processingProgress: ProcessingProgress) {
         if (lastStatusId == processingProgress.statusTextResourceId
-            && System.currentTimeMillis() - lastProgressUpdate < 2000)
+            && System.currentTimeMillis() - lastProgressUpdate < 2000
+        )
             return
         lastProgressUpdate = System.currentTimeMillis()
         lastStatusId = processingProgress.statusTextResourceId
@@ -165,11 +167,15 @@ class UniversalProcessorForegroundService : Service() {
             when (processingResult.contentType) {
                 MediaContentType.GALLERY -> putExtra(
                     KEY_MEDIA_URI_LIST,
-                    ArrayList(processingResult.mediaUris)
+                    ArrayList(processingResult.downloadedMedia.stream().map { it.metadata.uri }
+                        .collect(Collectors.toList()))
                 )
                 MediaContentType.TEXT -> {
                 }
-                else -> putExtra(KEY_MEDIA_SINGLE_URI, processingResult.mediaUris.first())
+                else -> putExtra(
+                    KEY_MEDIA_SINGLE_URI,
+                    processingResult.downloadedMedia.first().metadata.uri
+                )
             }
         }
     }

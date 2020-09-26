@@ -77,7 +77,7 @@ class UniversalUrlProcessor(
         generateDestinationUris(filteredMediaList)
         Log.d(LOG_TAG, "Generated destination Uris")
 
-        val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
+        if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
             downloadMedia(filteredMediaList) { progress: ProcessingProgress ->
                 progressCallback(
                     ProcessingProgress(
@@ -86,16 +86,15 @@ class UniversalUrlProcessor(
                     )
                 )
             }
-        } else {
-            emptyList()
         }
-        if (uris.isNotEmpty())
-            Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
+
+        if (filteredMediaList.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
 
         return ProcessingResult(
             filteredMediaList.listMediaContentType,
             filteredMediaList.caption,
-            uris
+            filteredMediaList
         )
     }
 
@@ -115,7 +114,7 @@ class UniversalUrlProcessor(
     private fun downloadMedia(
         filteredMediaList: MediaDownloadList,
         downloadProgressCallback: (ProcessingProgress) -> Unit
-    ): List<Uri> {
+    ) {
         return try {
             downloader.downloadMediaList(filteredMediaList, downloadProgressCallback)
         } catch (e: Exception) {
