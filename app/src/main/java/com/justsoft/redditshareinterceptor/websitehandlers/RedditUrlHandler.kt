@@ -13,6 +13,7 @@ import com.justsoft.redditshareinterceptor.model.media.MediaList
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.Stopwatch
 import org.json.JSONArray
 import java.util.regex.Pattern
 
@@ -34,17 +35,28 @@ class RedditUrlHandler : UrlHandler {
         Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
     override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
+        val stopwatch = Stopwatch()
+
         val cleanUrl = extractCleanUrl(url)
+
+        stopwatch.start()
         val redditPost = downloadRedditPost(cleanUrl, requestHelper)
+        Log.d(LOG_TAG, "Downloaded post object in ${stopwatch.restartAndGetTimeElapsed()} ms")
 
         val postProcessor = selectPostProcessor(redditPost)
-        Log.d(LOG_TAG, "Selected Reddit processor ${postProcessor.javaClass.simpleName}")
+        Log.d(
+            LOG_TAG,
+            "Selected Reddit processor ${postProcessor.javaClass.simpleName} in ${stopwatch.restartAndGetTimeElapsed()} ms"
+        )
 
         val postProcessorBundle = Bundle()
         val postContentType = getPostMediaType(
             postProcessor, redditPost, postProcessorBundle, requestHelper
         )
-        Log.d(LOG_TAG, "Post content type is $postContentType")
+        Log.d(
+            LOG_TAG,
+            "Got post content type $postContentType in ${stopwatch.restartAndGetTimeElapsed()} ms"
+        )
         FirebaseAnalyticsHelper.getInstance().logEvent("get_reddit_media_type") {
             param("clean_url", cleanUrl)
             param("processor_name", postProcessor.javaClass.simpleName)
@@ -56,6 +68,10 @@ class RedditUrlHandler : UrlHandler {
             redditPost,
             postProcessorBundle,
             requestHelper
+        )
+        Log.d(
+            LOG_TAG,
+            "Got post media list in ${stopwatch.restartAndGetTimeElapsed()} ms"
         )
 
         unfilteredMedia.caption =
@@ -108,6 +124,12 @@ class RedditUrlHandler : UrlHandler {
             1 -> return suitableProcessors.first()
             else -> throw MultipleSuitableProcessorsExceptions(processors = suitableProcessors)
         }
+    }
+
+    private fun getPostUrl(url: String): String {
+        val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/(\\w+)/)")
+        val id = pattern.matcher(url).apply { this.find() }.group(1)!!
+        return "https://www.reddit.com/by_id/t3_$id/"
     }
 
     private fun extractCleanUrl(url: String): String {
