@@ -49,7 +49,6 @@ interface RequestHelper {
         val sourceConnection: HttpURLConnection =
             URL(requestUrl).openConnection() as HttpURLConnection
         outputStream.use { fileOutputStream ->
-            val analytics = FirebaseAnalyticsHelper.getInstance()
             sourceConnection.inputStream.use { inputStream ->
                 val downloadStartTime = System.currentTimeMillis()
                 var downloadSize: Long = 0
