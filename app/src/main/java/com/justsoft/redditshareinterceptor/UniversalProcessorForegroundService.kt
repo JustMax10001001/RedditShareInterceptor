@@ -217,6 +217,8 @@ class UniversalProcessorForegroundService : Service() {
             .setContentTitle(getString(R.string.notification_download_finished_title))
             .setAutoCancel(true)
             .setDefaults(DEFAULT_ALL)
+            .setColorized(true)
+            .setColor(getColor(R.color.colorPrimary))
             .addAction(
                 NotificationCompat.Action.Builder(
                     R.drawable.ic_send,
@@ -255,6 +257,8 @@ class UniversalProcessorForegroundService : Service() {
         return notificationBuilder
             .setContentTitle(getString(R.string.processing_media))
             .setContentText(statusText)
+            .setColorized(true)
+            .setColor(getColor(R.color.colorPrimary))
             .build()
     }
 
