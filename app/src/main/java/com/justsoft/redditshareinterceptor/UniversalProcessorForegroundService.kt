@@ -1,9 +1,6 @@
 package com.justsoft.redditshareinterceptor
 
-import android.app.Notification
-import android.app.NotificationChannel
-import android.app.NotificationManager
-import android.app.Service
+import android.app.*
 import android.content.Intent
 import android.net.Uri
 import android.os.Build.VERSION
@@ -14,9 +11,21 @@ import android.os.Looper
 import android.util.Log
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationCompat.DEFAULT_ALL
+import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_SINGLE_MEDIA
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_CAPTION
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_FLAG
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
@@ -46,6 +55,9 @@ class UniversalProcessorForegroundService : Service() {
     override fun onCreate() {
         super.onCreate()
         Log.d(LOG_TAG, "onCreate()")
+        if (VERSION.SDK_INT >= VERSION_CODES.O) {
+            buildNotificationChannels()
+        }
 
         mUniversalUrlProcessor.error(::onError)
         mUniversalUrlProcessor.result(::onResult)
@@ -57,7 +69,7 @@ class UniversalProcessorForegroundService : Service() {
         intent ?: throw IllegalArgumentException("intent is null")
 
         if (intent.action == ACTION_PROCESS_URL) {
-            startForeground(DOWNLOADING_NOTIFICATION_ID, buildNotification())
+            startForeground(DOWNLOADING_NOTIFICATION_ID, buildProgressNotification())
             mBackgroundExecutor.submit {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
                 FirebaseCrashlytics.getInstance().setCustomKey("url", url)
@@ -98,27 +110,33 @@ class UniversalProcessorForegroundService : Service() {
     }
 
     private fun onResult(processingResult: ProcessingResult) {
+        Log.d(LOG_TAG, "Processing succeeded")
         executeOnMainThread {
             updateDownloadNotification(100, R.string.processing_media_state_processed)
-            startActivity(
-                when (processingResult.contentType) {
-                    MediaContentType.GALLERY -> prepareMediaMultipleIntent(
-                        processingResult.caption,
-                        processingResult.mediaUris
-                    )
-                    MediaContentType.TEXT -> prepareTextIntent(processingResult.caption)
-                    else -> prepareMediaIntent(
-                        processingResult.caption,
-                        processingResult.contentType,
-                        processingResult.mediaUris.first()
-                    )
-                }
-            )
-            stopForeground(true)
+            val broadcastIntent = prepareBroadcastReceiverIntent(processingResult)
+            if (processingResult.processingTime <= 5000) {
+                Log.d(LOG_TAG, "Processing completed in under 5 seconds, using sendBroadcast()")
+                sendBroadcast(broadcastIntent)
+            } else {
+                Log.d(LOG_TAG, "Processing completed in over 5 seconds, using notification")
+                notify(
+                    DOWNLOAD_FINISHED_NOTIFICATION_ID,
+                    buildProcessingFinishedNotification(broadcastIntent)
+                )
+            }
         }
+        stopForeground(true)
     }
 
+    private var lastProgressUpdate: Long = 0
+    private var lastStatusId: Int = 0
+
     private fun onProgress(processingProgress: ProcessingProgress) {
+        if (lastStatusId == processingProgress.statusTextResourceId
+            && System.currentTimeMillis() - lastProgressUpdate < 2000)
+            return
+        lastProgressUpdate = System.currentTimeMillis()
+        lastStatusId = processingProgress.statusTextResourceId
         executeOnMainThread {
             updateDownloadNotification(
                 processingProgress.overallProgress,
@@ -131,53 +149,41 @@ class UniversalProcessorForegroundService : Service() {
 
     // INTENT CREATION
 
-    private fun prepareMediaMultipleIntent(
-        caption: String,
-        uris: List<Uri>
-    ): Intent {
-        return prepareIntent(
-            getMimeForContentType(MediaContentType.GALLERY),
-            caption
-        ).apply {
-            action = Intent.ACTION_SEND_MULTIPLE
+    private fun prepareBroadcastReceiverIntent(processingResult: ProcessingResult): Intent {
+        return Intent(this, SendNotificationBroadcastReceiver::class.java).apply {
+            action = ACTION_SHARE_MEDIA
 
-            putParcelableArrayListExtra(Intent.EXTRA_STREAM, ArrayList(uris))
+            putExtra(KEY_MEDIA_CAPTION, processingResult.caption)
+            putExtra(KEY_MIME_TYPE, getMimeForContentType(processingResult.contentType))
+            putExtra(
+                KEY_MEDIA_FLAG, when (processingResult.contentType) {
+                    MediaContentType.GALLERY -> FLAG_MULTIPLE_MEDIA
+                    MediaContentType.TEXT -> FLAG_NO_MEDIA
+                    else -> FLAG_SINGLE_MEDIA
+                }
+            )
+            when (processingResult.contentType) {
+                MediaContentType.GALLERY -> putExtra(
+                    KEY_MEDIA_URI_LIST,
+                    ArrayList(processingResult.mediaUris)
+                )
+                MediaContentType.TEXT -> {
+                }
+                else -> putExtra(KEY_MEDIA_SINGLE_URI, processingResult.mediaUris.first())
+            }
         }
     }
-
-    private fun prepareTextIntent(caption: String): Intent =
-        prepareIntent(
-            "text/plain",
-            caption
-        )
-
-    private fun prepareMediaIntent(
-        caption: String,
-        mediaContentType: MediaContentType,
-        mediaUri: Uri
-    ): Intent =
-        prepareIntent(
-            getMimeForContentType(mediaContentType), caption
-        ).putExtra(Intent.EXTRA_STREAM, mediaUri)
-
-    private fun prepareIntent(mimeType: String, extraText: String): Intent =
-        Intent().apply {
-            action = Intent.ACTION_SEND
-            type = mimeType
-
-            putExtra(Intent.EXTRA_TEXT, extraText)
-
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-        }
 
     // END INTENT CREATION
 
-    // NOTIFICATION
+    // NOTIFICATIONS
 
-    private val mNotificationManager: NotificationManager by lazy {
-        applicationContext.getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+    private val mNotificationManager: NotificationManagerCompat by lazy {
+        NotificationManagerCompat.from(applicationContext)
     }
+
+    private fun notify(id: Int, notification: Notification) =
+        mNotificationManager.notify(id, notification)
 
     private fun updateDownloadNotification(
         progress: Int = 0,
@@ -185,30 +191,60 @@ class UniversalProcessorForegroundService : Service() {
     ) {
         mNotificationManager.notify(
             DOWNLOADING_NOTIFICATION_ID,
-            buildNotification(progress, statusTextResId)
+            buildProgressNotification(progress, statusTextResId)
         )
     }
 
+    @Suppress("SameParameterValue")
     private fun updateDownloadNotification(
         progress: Int = 0,
         statusText: String
     ) {
         mNotificationManager.notify(
             DOWNLOADING_NOTIFICATION_ID,
-            buildNotification(progress, statusText)
+            buildProgressNotification(progress, statusText)
         )
     }
 
-    private fun buildNotification(
+    private fun buildProcessingFinishedNotification(action: Intent): Notification {
+        val notificationBuilder = notificationBuilder(DOWNLOAD_FINISHED_CHANNEL_ID)
+
+        if (VERSION.SDK_INT < VERSION_CODES.O)
+            notificationBuilder.priority = NotificationCompat.PRIORITY_HIGH
+
+        notificationBuilder
+            .setSmallIcon(R.drawable.ic_check)
+            .setContentTitle(getString(R.string.notification_download_finished_title))
+            .setAutoCancel(true)
+            .setDefaults(DEFAULT_ALL)
+            .setColorized(true)
+            .setColor(getColor(R.color.colorPrimary))
+            .addAction(
+                NotificationCompat.Action.Builder(
+                    R.drawable.ic_send,
+                    getString(R.string.notification_download_finished_action_send),
+                    PendingIntent.getBroadcast(
+                        this,
+                        DOWNLOAD_FINISHED_NOTIFICATION_ID,
+                        action,
+                        PendingIntent.FLAG_ONE_SHOT
+                    )
+                ).build()
+            )
+
+        return notificationBuilder.build()
+    }
+
+    private fun buildProgressNotification(
+        progress: Int = 0,
+        statusTextResId: Int = R.string.processing_media_state_starting
+    ): Notification = buildProgressNotification(progress, getString(statusTextResId))
+
+    private fun buildProgressNotification(
         progress: Int = 0,
         statusText: String
     ): Notification {
-        val notificationBuilder =
-            if (VERSION.SDK_INT >= VERSION_CODES.O) {
-                buildNotificationChannel()
-                Notification.Builder(this, ONGOING_DOWNLOAD_CHANNEL_ID)
-            } else
-                Notification.Builder(this)
+        val notificationBuilder = notificationBuilder(ONGOING_DOWNLOAD_CHANNEL_ID)
 
         if (progress >= 0)
             notificationBuilder.setProgress(100, progress, false)
@@ -221,24 +257,36 @@ class UniversalProcessorForegroundService : Service() {
         return notificationBuilder
             .setContentTitle(getString(R.string.processing_media))
             .setContentText(statusText)
+            .setColorized(true)
+            .setColor(getColor(R.color.colorPrimary))
             .build()
     }
 
-    private fun buildNotification(
-        progress: Int = 0,
-        statusTextResId: Int = R.string.processing_media_state_starting
-    ): Notification = buildNotification(progress, getString(statusTextResId))
-
-    @RequiresApi(VERSION_CODES.O)
-    private fun buildNotificationChannel() {
-        val name = getString(R.string.ongoing_media_download)
-        val importance = NotificationManager.IMPORTANCE_LOW
-        val mChannel = NotificationChannel(ONGOING_DOWNLOAD_CHANNEL_ID, name, importance)
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(mChannel)
+    private fun notificationBuilder(channelId: String): NotificationCompat.Builder {
+        return if (VERSION.SDK_INT >= VERSION_CODES.O) {
+            NotificationCompat.Builder(applicationContext, channelId)
+        } else
+            NotificationCompat.Builder(applicationContext)
     }
 
-    // END NOTIFICATION
+    @RequiresApi(VERSION_CODES.O)
+    private fun buildNotificationChannels() {
+        val downloadChannel = NotificationChannel(
+            ONGOING_DOWNLOAD_CHANNEL_ID,
+            getString(R.string.ongoing_media_download),
+            NotificationManager.IMPORTANCE_LOW
+        )
+        val downloadFinishedChannel = NotificationChannel(
+            DOWNLOAD_FINISHED_CHANNEL_ID,
+            getString(R.string.media_download_finished),
+            NotificationManager.IMPORTANCE_HIGH
+        )
+        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(downloadChannel)
+        notificationManager.createNotificationChannel(downloadFinishedChannel)
+    }
+
+    // END NOTIFICATIONS
 
     // UTILITY METHODS
 
@@ -285,7 +333,10 @@ class UniversalProcessorForegroundService : Service() {
         private const val LOG_TAG = "UProcessorService"
 
         private const val ONGOING_DOWNLOAD_CHANNEL_ID = "ongoing_download"
-        private const val DOWNLOADING_NOTIFICATION_ID = 777
+        private const val DOWNLOAD_FINISHED_CHANNEL_ID = "download_finished"
+
+        private const val DOWNLOADING_NOTIFICATION_ID = 456
+        const val DOWNLOAD_FINISHED_NOTIFICATION_ID = 457
 
         const val ACTION_PROCESS_URL =
             "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"

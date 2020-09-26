@@ -1,7 +1,6 @@
 package com.justsoft.redditshareinterceptor.util
 
 import android.util.Log
-import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import org.json.JSONObject
 import java.io.OutputStream
@@ -50,7 +49,6 @@ interface RequestHelper {
         val sourceConnection: HttpURLConnection =
             URL(requestUrl).openConnection() as HttpURLConnection
         outputStream.use { fileOutputStream ->
-            val analytics = FirebaseAnalyticsHelper.getInstance()
             sourceConnection.inputStream.use { inputStream ->
                 val downloadStartTime = System.currentTimeMillis()
                 var downloadSize: Long = 0
@@ -73,10 +71,6 @@ interface RequestHelper {
 
                 val timeElapsed = System.currentTimeMillis() - downloadStartTime
 
-                analytics.logEvent("media_downloaded") {
-                    param("time_elapsed_ms", timeElapsed)
-                    param("download_size_bytes", downloadSize)
-                }
                 Log.d(
                     "RequestHelper",
                     ("Media of size %.2f MiB\r\n" +
