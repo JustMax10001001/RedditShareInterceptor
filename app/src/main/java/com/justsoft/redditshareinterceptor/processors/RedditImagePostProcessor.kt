@@ -7,8 +7,8 @@ import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
+import com.justsoft.redditshareinterceptor.util.urlDecode
+import org.json.JSONObject
 
 class RedditImagePostProcessor : PostProcessor {
 
@@ -32,14 +32,28 @@ class RedditImagePostProcessor : PostProcessor {
     ): MediaDownloadList =
         getMediaList(redditPost, requestHelper)
 
+    private fun constructImage(imageObject: JSONObject): MediaDownloadObject {
+        return MediaDownloadObject(
+            urlDecode(imageObject.getString("url")),
+            MediaContentType.IMAGE
+        ).apply {
+            metadata.resolutionX = imageObject.getInt("width")
+            metadata.resolutionY = imageObject.getInt("height")
+        }
+    }
 
     private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): MediaDownloadList {
-        return mediaDownloadListOf(MediaContentType.IMAGE).apply {
-            runBlocking(Dispatchers.IO) {
-                redditPost.previewImages.forEach {
-                    add(MediaDownloadObject(it, MediaContentType.IMAGE, requestHelper.getContentLength(it)))
-                }
-            }
+        val image = redditPost.postData
+            .getJSONObject("preview")
+            .getJSONArray("images")
+            .getJSONObject(0)
+
+        val mediaDownloadList = mediaDownloadListOf(constructImage(image.getJSONObject("source")))
+        val resolutions = image.getJSONArray("resolutions")
+        for (i in 0 until resolutions.length()) {
+            mediaDownloadList.add(constructImage(resolutions.getJSONObject(i)))
         }
+
+        return mediaDownloadList
     }
 }
