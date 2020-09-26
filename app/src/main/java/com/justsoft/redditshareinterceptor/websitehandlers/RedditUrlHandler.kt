@@ -132,14 +132,15 @@ class RedditUrlHandler : UrlHandler {
         return "https://www.reddit.com/by_id/t3_$id/"
     }
 
-    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
-        RedditPost(
-            requestHelper.readHttpJsonResponse("$postUrl.json")
-                .getJSONObject("data")
+    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost {
+        val response = requestHelper.readHttpJsonResponse("$postUrl.json")
+        return RedditPost(
+            response.getJSONObject("data")
                 .getJSONArray("children")
                 .getJSONObject(0)
                 .getJSONObject("data")
         )
+    }
 
     companion object {
         private const val LOG_TAG = "RedditHandler"

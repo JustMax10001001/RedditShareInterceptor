@@ -7,6 +7,8 @@ import com.justsoft.redditshareinterceptor.util.TestRequestHelper
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
+import org.mockito.ArgumentMatchers.any
+import org.mockito.ArgumentMatchers.anyString
 import org.mockito.Mockito
 
 class RedditUrlHandlerTest {
@@ -65,7 +67,7 @@ class RedditUrlHandlerTest {
         val requestUrl = "https://www.reddit.com/r/announcements/comments/hrrh23/"
         val mockRequestHelper = Mockito.mock(RequestHelper::class.java)
         Mockito
-            .`when`(mockRequestHelper.readHttpTextResponse("https://www.reddit.com/by_id/t3_hrrh23/.json"))
+            .`when`(mockRequestHelper.readHttpTextResponse(anyString(), any()))
             .thenReturn(
                 createMockPostJsonResponse(
                     createMockPostObject(
