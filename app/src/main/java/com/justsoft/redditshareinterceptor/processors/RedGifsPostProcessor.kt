@@ -46,7 +46,8 @@ class RedGifsPostProcessor : PostProcessor {
             urls.forEach {
                 launch {
                     availableDownloads.add(
-                        MediaDownloadObject(it, MediaContentType.VIDEO, requestHelper.getContentLength(it))
+                        MediaDownloadObject(it, MediaContentType.VIDEO)
+                            .apply { metadata.size = requestHelper.getContentLength(it) }
                     )
                 }
             }
