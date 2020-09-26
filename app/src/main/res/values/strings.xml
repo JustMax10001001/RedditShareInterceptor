@@ -3,10 +3,9 @@
     <string name="shareButtonLabel">Share</string>
     <string name="filePickButtonLabel">Pick a file</string>
     <string name="interceptor_label">Download media and share</string>
-    <string name="selected_file">Selected file: {0}</string>
-    <string name="provider_name">com.justsoft.redditshareinterceptor.provider</string>
     <string name="ongoing_media_download">Ongoing media download</string>
 
+    <string name="provider_name">com.justsoft.redditshareinterceptor.provider</string>
 
     <string name="processing_media">Processing media</string>
 
@@ -18,5 +17,5 @@
     <string name="processing_media_state_downloading_media">Downloading media</string>
 
     <string name="error_processing_url">Error processing post</string>
-    <string name="error_processing_url_extended">Error processing post: {0}</string>
+    <string name="error_processing_url_extended">Error processing post: %s</string>
 </resources>
