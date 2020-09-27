@@ -3,7 +3,6 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
@@ -22,17 +21,17 @@ class RedGifsPostProcessor : PostProcessor {
         requestHelper: RequestHelper
     ): MediaContentType = MediaContentType.VIDEO
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList = getPossibleDownloads(redditPost, requestHelper)
+    ): List<MediaDownloadObject> = getPossibleDownloads(redditPost, requestHelper)
 
 
     private fun getPossibleDownloads(
         redditPost: RedditPost,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         val htmlDoc = Jsoup.connect(
             redditPost.url
         ).get()
@@ -41,7 +40,7 @@ class RedGifsPostProcessor : PostProcessor {
             .stream()
             .map { it.attr("src") }
             .collect(Collectors.toList())
-        val availableDownloads = MediaDownloadList(MediaContentType.VIDEO)
+        val availableDownloads = mutableListOf<MediaDownloadObject>()
         runBlocking(Dispatchers.IO) {
             urls.forEach {
                 launch {

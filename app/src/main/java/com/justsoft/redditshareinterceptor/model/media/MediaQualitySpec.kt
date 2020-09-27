@@ -1,5 +1,6 @@
 package com.justsoft.redditshareinterceptor.model.media
 
+
 class MediaQualitySpec private constructor() {
     var videoSizeX: Int = -1
         private set
@@ -16,6 +17,8 @@ class MediaQualitySpec private constructor() {
         private set
     var imageFileSize: Int = -1
         private set
+
+
 
     companion object {
         val PRESET_HIGH = MediaQualitySpec().apply {

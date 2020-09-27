@@ -5,9 +5,7 @@ import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.GALLERY
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.IMAGE
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.urlDecode
 import org.json.JSONObject
@@ -24,11 +22,11 @@ class RedditGalleryPostProcessor : PostProcessor {
     ): MediaContentType =
         GALLERY
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         return getMediaList(redditPost)
     }
 
@@ -62,8 +60,8 @@ class RedditGalleryPostProcessor : PostProcessor {
         return list
     }
 
-    private fun getMediaList(redditPost: RedditPost): MediaDownloadList {
-        val mediaList = mediaDownloadListOf(GALLERY)
+    private fun getMediaList(redditPost: RedditPost): List<MediaDownloadObject> {
+        val mediaList = mutableListOf<MediaDownloadObject>()
 
         val mediaMetadata = redditPost.postData.getJSONObject("media_metadata")
         val keysIterator = mediaMetadata.keys()

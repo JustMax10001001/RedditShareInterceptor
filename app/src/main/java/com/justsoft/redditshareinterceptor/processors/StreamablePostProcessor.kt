@@ -4,9 +4,7 @@ import android.os.Bundle
 import android.util.Log
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.util.regex.Pattern
 
@@ -22,24 +20,24 @@ class StreamablePostProcessor : PostProcessor {
     ): MediaContentType =
         MediaContentType.VIDEO
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         return getPossibleDownloads(requestHelper, redditPost)
     }
 
     private fun getPossibleDownloads(
         requestHelper: RequestHelper,
         redditPost: RedditPost
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         val apiResponse = requestHelper.readHttpJsonResponse(
             "$STREAMABLE_API_URL/videos/${getVideoCode(redditPost.url)}"
         )
         val filesObj = apiResponse
             .getJSONObject("files")
-        val videos = mediaDownloadListOf(MediaContentType.VIDEO)
+        val videos = mutableListOf<MediaDownloadObject>()
         filesObj
             .keys()
             .forEach {

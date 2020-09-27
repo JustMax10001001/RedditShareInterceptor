@@ -3,9 +3,7 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -51,11 +49,11 @@ class RedditVideoPostProcessor : PostProcessor {
         return contentType
     }
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         val urls = savedState.getStringArray(BUNDLE_URLS)
             ?: throw IllegalStateException("savedState does not contain $BUNDLE_URLS key")
         val isGif = savedState.getBoolean(BUNDLE_IS_GIF)
@@ -67,9 +65,9 @@ class RedditVideoPostProcessor : PostProcessor {
         isGif: Boolean,
         directUrls: Array<String>,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         val contentType = if (isGif) MediaContentType.GIF else MediaContentType.VIDEO
-        val list = mediaDownloadListOf(contentType)
+        val list = mutableListOf<MediaDownloadObject>()
         runBlocking(Dispatchers.IO) {
             for (url in directUrls) {
                 launch {
