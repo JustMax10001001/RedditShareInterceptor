@@ -8,7 +8,8 @@ import com.justsoft.redditshareinterceptor.PostContentTypeAcquiringException
 import com.justsoft.redditshareinterceptor.PostContentUrlAcquiringException
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -32,7 +33,10 @@ class RedditUrlHandler : UrlHandler {
     override fun isHandlerSuitableForUrl(url: String): Boolean =
         Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
-    override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaDownloadList {
+    /**
+     * @return fully-featured MediaDownloadInfo with all possible downloads, e.g. unfiltered download list
+     */
+    override fun processUrl(url: String, requestHelper: RequestHelper): MediaDownloadInfo {
         val stopwatch = Stopwatch()
 
         val cleanUrl = getPostApiUrl(url)
@@ -73,10 +77,12 @@ class RedditUrlHandler : UrlHandler {
             "Got post media list in ${stopwatch.restartAndGetTimeElapsed()} ms"
         )
 
-        unfilteredMedia.caption =
+        val caption =
             postProcessor.getPostCaption(redditPost, postProcessorBundle, requestHelper)
 
-        return unfilteredMedia
+        return MediaDownloadInfo(
+            postContentType, caption, unfilteredMedia
+        )
     }
 
     private fun getUnfilteredMedia(
@@ -84,9 +90,9 @@ class RedditUrlHandler : UrlHandler {
         postObject: RedditPost,
         postProcessorBundle: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList {
+    ): List<MediaDownloadObject> {
         return try {
-            postProcessor.getAllPossibleMediaModels(
+            postProcessor.getAllPossibleMediaDownloadObjects(
                 postObject,
                 postProcessorBundle,
                 requestHelper

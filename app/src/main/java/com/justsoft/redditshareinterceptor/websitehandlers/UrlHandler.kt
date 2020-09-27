@@ -1,6 +1,6 @@
 package com.justsoft.redditshareinterceptor.websitehandlers
 
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
 /**
@@ -16,5 +16,5 @@ interface UrlHandler {
      * RequestHelper is provided for additional network requests
      * @return all possible downloads. The best option will be chosen and downloaded
      */
-    fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaDownloadList
+    fun processUrl(url: String, requestHelper: RequestHelper): MediaDownloadInfo
 }
