@@ -119,7 +119,7 @@ class UniversalProcessorForegroundService : Service() {
                 Log.d(LOG_TAG, "Processing completed in under 5 seconds, using sendBroadcast()")
                 sendBroadcast(broadcastIntent)
             } else {
-                Log.d(LOG_TAG, "Processing completed in over 5 seconds, using notification")
+                Log.d(LOG_TAG, "Processing completed in over 5 seconds, sending notification")
                 notify(
                     DOWNLOAD_FINISHED_NOTIFICATION_ID,
                     buildProcessingFinishedNotification(broadcastIntent)
@@ -127,6 +127,7 @@ class UniversalProcessorForegroundService : Service() {
             }
         }
         stopForeground(true)
+        cancelNotification(DOWNLOADING_NOTIFICATION_ID)
     }
 
     private var lastProgressUpdate: Long = 0
@@ -134,7 +135,7 @@ class UniversalProcessorForegroundService : Service() {
 
     private fun onProgress(processingProgress: ProcessingProgress) {
         if (lastStatusId == processingProgress.statusTextResourceId
-            && System.currentTimeMillis() - lastProgressUpdate < 2000
+            && System.currentTimeMillis() - lastProgressUpdate < 250
         )
             return
         lastProgressUpdate = System.currentTimeMillis()
@@ -188,6 +189,10 @@ class UniversalProcessorForegroundService : Service() {
         NotificationManagerCompat.from(applicationContext)
     }
 
+    @Suppress("SameParameterValue")
+    private fun cancelNotification(id: Int) = mNotificationManager.cancel(id)
+
+    @Suppress("SameParameterValue")
     private fun notify(id: Int, notification: Notification) =
         mNotificationManager.notify(id, notification)
 
