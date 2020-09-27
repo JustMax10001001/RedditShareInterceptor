@@ -28,7 +28,7 @@ class RedditImagePostProcessor : PostProcessor {
         savedState: Bundle,
         requestHelper: RequestHelper
     ): List<MediaDownloadObject> =
-        getMediaList(redditPost, requestHelper)
+        getMediaList(redditPost)
 
     private fun constructImage(imageObject: JSONObject): MediaDownloadObject {
         return MediaDownloadObject(
@@ -40,7 +40,7 @@ class RedditImagePostProcessor : PostProcessor {
         }
     }
 
-    private fun getMediaList(redditPost: RedditPost, requestHelper: RequestHelper): List<MediaDownloadObject> {
+    private fun getMediaList(redditPost: RedditPost): List<MediaDownloadObject> {
         val image = redditPost.postData
             .getJSONObject("preview")
             .getJSONArray("images")
