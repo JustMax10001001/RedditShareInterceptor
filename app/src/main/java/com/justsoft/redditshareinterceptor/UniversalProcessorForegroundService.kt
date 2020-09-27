@@ -29,6 +29,7 @@ import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Com
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
 import java.io.OutputStream
@@ -166,18 +167,18 @@ class UniversalProcessorForegroundService : Service() {
             putExtra(KEY_MIME_TYPE, getMimeForContentType(mediaInfo.mediaContentType))
             putExtra(
                 KEY_MEDIA_FLAG, when (mediaInfo.mediaContentType) {
-                    MediaContentType.GALLERY -> FLAG_MULTIPLE_MEDIA
-                    MediaContentType.TEXT -> FLAG_NO_MEDIA
+                    GALLERY -> FLAG_MULTIPLE_MEDIA
+                    TEXT -> FLAG_NO_MEDIA
                     else -> FLAG_SINGLE_MEDIA
                 }
             )
             when (mediaInfo.mediaContentType) {
-                MediaContentType.GALLERY -> putExtra(
+                GALLERY -> putExtra(
                     KEY_MEDIA_URI_LIST,
                     ArrayList(mediaInfo.mediaDownloadList.stream().map { it.metadata.uri }
                         .collect(Collectors.toList()))
                 )
-                MediaContentType.TEXT -> {
+                TEXT -> {
                 }
                 else -> putExtra(
                     KEY_MEDIA_SINGLE_URI,
@@ -360,17 +361,18 @@ class UniversalProcessorForegroundService : Service() {
             "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"
 
         private val contentTypeToFileNameMap = mapOf(
-            MediaContentType.GIF to "gif.mp4",
-            MediaContentType.VIDEO to "video.mp4",
-            MediaContentType.IMAGE to "image.jpg",
-            MediaContentType.GALLERY to "image_%d.jpg",
+            GIF to "gif.mp4",
+            VIDEO to "video.mp4",
+            IMAGE to "image.jpg",
+            GALLERY to "image_%d.jpg",
         )
 
         private val contentTypeToMIME = mapOf(
-            MediaContentType.GIF to "video/*",
-            MediaContentType.VIDEO to "video/*",
-            MediaContentType.IMAGE to "image/*",
-            MediaContentType.GALLERY to "image/*",
+            GIF to "video/*",
+            VIDEO to "video/*",
+            IMAGE to "image/*",
+            GALLERY to "image/*",
+            TEXT to "text/plain"
         )
     }
 }
