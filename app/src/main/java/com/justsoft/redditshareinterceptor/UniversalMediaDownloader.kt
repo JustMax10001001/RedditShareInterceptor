@@ -5,7 +5,7 @@ import com.justsoft.redditshareinterceptor.downloaders.MultipleFileDownloader
 import com.justsoft.redditshareinterceptor.downloaders.SingleFileDownloader
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import java.io.OutputStream
 
@@ -18,13 +18,13 @@ class UniversalMediaDownloader(
     private val singleFileDownloader = SingleFileDownloader(requestHelper, outputStreamCallback)
 
     fun downloadMediaList(
-        mediaList: MediaDownloadList,
+        mediaInfo: MediaDownloadInfo,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
-        if (mediaList.listMediaContentType == MediaContentType.GALLERY) {
-            multipleFileDownloader.downloadFiles(mediaList, downloadProgressCallback)
+        if (mediaInfo.mediaContentType == MediaContentType.GALLERY) {
+            multipleFileDownloader.downloadFiles(mediaInfo.mediaDownloadList, downloadProgressCallback)
         } else {
-            singleFileDownloader.downloadFile(mediaList.first(), downloadProgressCallback)
+            singleFileDownloader.downloadFile(mediaInfo.mediaDownloadList.first(), downloadProgressCallback)
         }
     }
 }

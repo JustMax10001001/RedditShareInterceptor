@@ -2,7 +2,7 @@ package com.justsoft.redditshareinterceptor.downloaders
 
 import android.net.Uri
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -15,7 +15,7 @@ class MultipleFileDownloader(
 ) {
 
     fun downloadFiles(
-        downloadObjects: MediaDownloadList,
+        downloadObjects: MutableList<MediaDownloadObject>,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
         val objectCount = downloadObjects.count()
