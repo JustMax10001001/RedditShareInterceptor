@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor.processors
 
 import android.os.Bundle
+import android.util.Log
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
@@ -43,6 +44,13 @@ class StreamablePostProcessor : PostProcessor {
             .keys()
             .forEach {
                 val mediaObj = filesObj.getJSONObject(it)
+                if (mediaObj.isNull("url") && mediaObj.isNull("url")) {
+                    Log.w(
+                        "Streamable",
+                        "Skipping media object as it does not have url"
+                    )
+                    return@forEach
+                }
                 videos.add(
                     if (it != "original" || apiResponse.isNull("source"))
                         MediaDownloadObject(
