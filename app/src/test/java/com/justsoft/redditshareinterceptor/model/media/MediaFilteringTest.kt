@@ -6,7 +6,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Test
 import org.mockito.Mockito
 
-class MediaDownloadInfoTest {
+class MediaFilteringTest {
 
     private fun mockVideoMedia(size: Long) =
         MediaDownloadObject("mock://vid.eo", VIDEO)
@@ -42,7 +42,7 @@ class MediaDownloadInfoTest {
         )
         val mockSpec = Mockito.mock(MediaQualitySpec::class.java)
         Mockito.`when`(mockSpec.videoFileSize).thenReturn(2)
-        assertEquals(2, filterMediaInfo(mockSpec, mediaList))
+        assertEquals(2, filterMediaInfo(mockSpec, mediaList).first().metadata.size)
     }
 
     @Test
@@ -57,7 +57,7 @@ class MediaDownloadInfoTest {
         )
         val mockSpec = Mockito.mock(MediaQualitySpec::class.java)
         Mockito.`when`(mockSpec.videoFileSize).thenReturn(4)
-        assertEquals(3, filterMediaInfo(mockSpec, mediaList))
+        assertEquals(3, filterMediaInfo(mockSpec, mediaList).first().metadata.size)
     }
 
     @Test
@@ -72,7 +72,7 @@ class MediaDownloadInfoTest {
         )
         val mockSpec = Mockito.mock(MediaQualitySpec::class.java)
         Mockito.`when`(mockSpec.videoFileSize).thenReturn(2)
-        assertEquals(3, filterMediaInfo(mockSpec, mediaList))
+        assertEquals(3, filterMediaInfo(mockSpec, mediaList).first().metadata.size)
     }
 
     @Test
