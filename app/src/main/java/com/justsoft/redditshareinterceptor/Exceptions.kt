@@ -78,8 +78,8 @@ open class MediaDownloadException(
     cause: Throwable? = null
 ): Exception(message, cause)
 
-class DescriptorCreationException(
-    message: String = "Unable to create file descriptor.",
+class UriCreationException(
+    message: String = "Unable to get Uri for media.",
     cause: Throwable? = null
 ): MediaDownloadException(message, cause)
 

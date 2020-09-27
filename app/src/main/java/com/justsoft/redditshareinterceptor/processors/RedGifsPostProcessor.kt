@@ -3,8 +3,7 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,17 +21,17 @@ class RedGifsPostProcessor : PostProcessor {
         requestHelper: RequestHelper
     ): MediaContentType = MediaContentType.VIDEO
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList = getPossibleDownloads(redditPost, requestHelper)
+    ): List<MediaDownloadObject> = getPossibleDownloads(redditPost, requestHelper)
 
 
     private fun getPossibleDownloads(
         redditPost: RedditPost,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): List<MediaDownloadObject> {
         val htmlDoc = Jsoup.connect(
             redditPost.url
         ).get()
@@ -41,12 +40,13 @@ class RedGifsPostProcessor : PostProcessor {
             .stream()
             .map { it.attr("src") }
             .collect(Collectors.toList())
-        val availableDownloads = MediaList(MediaContentType.VIDEO)
+        val availableDownloads = mutableListOf<MediaDownloadObject>()
         runBlocking(Dispatchers.IO) {
             urls.forEach {
                 launch {
                     availableDownloads.add(
-                        MediaModel(it, MediaContentType.VIDEO, requestHelper.getContentLength(it))
+                        MediaDownloadObject(it, MediaContentType.VIDEO)
+                            .apply { metadata.size = requestHelper.getContentLength(it) }
                     )
                 }
             }

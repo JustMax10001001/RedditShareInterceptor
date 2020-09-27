@@ -35,7 +35,7 @@ class RedditPostHandlerIntegrationTest {
         postHandler.error {
             throw it
         }
-        postHandler.result { assert(true) }
+        postHandler.finished { assert(true) }
     }
 
     private fun openStreamForUri(uri: Uri): OutputStream =

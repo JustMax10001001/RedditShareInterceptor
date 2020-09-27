@@ -5,9 +5,7 @@ import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaSpec
+import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
@@ -17,14 +15,13 @@ import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
-    createUri: (MediaContentType, Int) -> Uri,
+    private val createUri: (MediaContentType, Int) -> Uri,
     openOutputStream: (Uri) -> OutputStream
 ) {
 
-    private var onUrlProcessed: (ProcessingResult) -> Unit = { }
-    private var onError: (Throwable) -> Unit = { }
+    private var onProcessingFinished: (ProcessingResult) -> Unit = { }
 
-    private val downloader = UniversalMediaDownloader(requestHelper, createUri, openOutputStream)
+    private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -34,21 +31,25 @@ class UniversalUrlProcessor(
         val stopwatch = Stopwatch()
         Log.d(LOG_TAG, "Starting url processing")
         stopwatch.start()
-        val result = try {
-            startUrlProcessing(url, progressCallback)
+        val processingResult = try {
+            val info = startUrlProcessing(url, progressCallback)
+            val delta = stopwatch.stopAndGetTimeElapsed()
+            Log.d(LOG_TAG, "Processing succeeded in $delta ms")
+
+            ProcessingResult.success(info, delta)
         } catch (e: Exception) {
-            Log.e(LOG_TAG, "Processing failed in ${stopwatch.stopAndGetTimeElapsed()} ms")
-            return onError(e)
+            val delta = stopwatch.stopAndGetTimeElapsed()
+            Log.e(LOG_TAG, "Processing failed in $delta ms", e)
+
+            ProcessingResult.error(e, delta)
         }
-        Log.d(LOG_TAG, "Processing succeeded in ${stopwatch.stopAndGetTimeElapsed()} ms")
-        result.processingTime = stopwatch.timeElapsed()
-        onUrlProcessed(result)
+        onProcessingFinished(processingResult)
     }
 
     private fun startUrlProcessing(
         url: String,
         progressCallback: (ProcessingProgress) -> Unit
-    ): ProcessingResult {
+    ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
         FirebaseAnalyticsHelper.getInstance().logEvent("select_url_handler") {
             param("url", url)
@@ -56,8 +57,11 @@ class UniversalUrlProcessor(
         }
         progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
 
-        val unfilteredMediaList = urlHandler.processUrlAndGetMedia(url, requestHelper)
-        Log.d(LOG_TAG, "Got unfiltered media, count: ${unfilteredMediaList.count()}")
+        val mediaDownloadInfo = urlHandler.processUrl(url, requestHelper)
+        Log.d(
+            LOG_TAG,
+            "Got unfiltered media, count: ${mediaDownloadInfo.mediaDownloadList.count()}"
+        )
         progressCallback(
             ProcessingProgress(
                 R.string.processing_media_state_loaded_media_variants,
@@ -65,7 +69,11 @@ class UniversalUrlProcessor(
             )
         )
 
-        val filteredMediaList = filterMedia(unfilteredMediaList, MediaSpec())
+        val filteredMediaList = filterMedia(
+            mediaDownloadInfo.mediaDownloadList,
+            mediaDownloadInfo.mediaContentType,
+            MediaQualitySpec.PRESET_HIGH
+        )
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
         progressCallback(
             ProcessingProgress(
@@ -73,9 +81,14 @@ class UniversalUrlProcessor(
                 40
             )
         )
+        mediaDownloadInfo.mediaDownloadList.clear()
+        mediaDownloadInfo.mediaDownloadList.addAll(filteredMediaList)
 
-        val uris = if (filteredMediaList.listMediaContentType != MediaContentType.TEXT) {
-            downloadMedia(filteredMediaList) { progress: ProcessingProgress ->
+        if (mediaDownloadInfo.mediaContentType != MediaContentType.TEXT) {
+            generateDestinationUris(mediaDownloadInfo)
+            Log.d(LOG_TAG, "Generated destination Uris")
+
+            downloadMedia(mediaDownloadInfo) { progress: ProcessingProgress ->
                 progressCallback(
                     ProcessingProgress(
                         R.string.processing_media_state_downloading_media,
@@ -83,36 +96,45 @@ class UniversalUrlProcessor(
                     )
                 )
             }
-        } else {
-            emptyList()
         }
-        if (uris.isNotEmpty())
-            Log.d(LOG_TAG, "Downloaded media files, count: ${uris.count()}")
 
-        return ProcessingResult(
-            filteredMediaList.listMediaContentType,
-            filteredMediaList.caption,
-            uris
-        )
+        if (filteredMediaList.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
+
+        return mediaDownloadInfo
+    }
+
+    private fun generateDestinationUris(filteredDownloadInfo: MediaDownloadInfo) {
+        try {
+            filteredDownloadInfo.mediaDownloadList.forEach { media ->
+                media.metadata.uri = createUri(
+                    filteredDownloadInfo.mediaContentType,
+                    media.galleryIndex
+                )
+            }
+        } catch (e: Exception) {
+            throw UriCreationException(cause = e)
+        }
     }
 
     private fun downloadMedia(
-        filteredMediaList: MediaList,
+        filteredMediaInfo: MediaDownloadInfo,
         downloadProgressCallback: (ProcessingProgress) -> Unit
-    ): List<Uri> {
+    ) {
         return try {
-            downloader.downloadMediaList(filteredMediaList, downloadProgressCallback)
+            downloader.downloadMediaList(filteredMediaInfo, downloadProgressCallback)
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }
     }
 
     private fun filterMedia(
-        unfilteredMediaList: MediaList,
-        filterSpec: MediaSpec
-    ): MediaList =
+        unfilteredDownloadList: MutableList<MediaDownloadObject>,
+        contentType: MediaContentType,
+        filterSpec: MediaQualitySpec
+    ): List<MediaDownloadObject> =
         try {
-            unfilteredMediaList.getMostSuitableMedia(filterSpec)
+            MediaListFilter.filterListByQualitySpec(filterSpec, unfilteredDownloadList, contentType)
         } catch (e: Exception) {
             throw MediaFilterException(cause = e)
         }
@@ -131,12 +153,8 @@ class UniversalUrlProcessor(
         }
     }
 
-    fun error(onError: (Throwable) -> Unit) {
-        this.onError = onError
-    }
-
-    fun result(onResult: (ProcessingResult) -> Unit) {
-        this.onUrlProcessed = onResult
+    fun finished(onResult: (ProcessingResult) -> Unit) {
+        this.onProcessingFinished = onResult
     }
 
     companion object {

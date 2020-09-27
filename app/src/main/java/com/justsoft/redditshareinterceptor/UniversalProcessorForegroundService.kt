@@ -29,10 +29,12 @@ import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Com
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
+import java.util.stream.Collectors
 
 class UniversalProcessorForegroundService : Service() {
 
@@ -59,8 +61,12 @@ class UniversalProcessorForegroundService : Service() {
             buildNotificationChannels()
         }
 
-        mUniversalUrlProcessor.error(::onError)
-        mUniversalUrlProcessor.result(::onResult)
+        mUniversalUrlProcessor.finished { result ->
+            if (result.processingSuccessful)
+                onResult(result)
+            else
+                onError(result.cause)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -118,7 +124,7 @@ class UniversalProcessorForegroundService : Service() {
                 Log.d(LOG_TAG, "Processing completed in under 5 seconds, using sendBroadcast()")
                 sendBroadcast(broadcastIntent)
             } else {
-                Log.d(LOG_TAG, "Processing completed in over 5 seconds, using notification")
+                Log.d(LOG_TAG, "Processing completed in over 5 seconds, sending notification")
                 notify(
                     DOWNLOAD_FINISHED_NOTIFICATION_ID,
                     buildProcessingFinishedNotification(broadcastIntent)
@@ -126,6 +132,7 @@ class UniversalProcessorForegroundService : Service() {
             }
         }
         stopForeground(true)
+        cancelNotification(DOWNLOADING_NOTIFICATION_ID)
     }
 
     private var lastProgressUpdate: Long = 0
@@ -133,7 +140,8 @@ class UniversalProcessorForegroundService : Service() {
 
     private fun onProgress(processingProgress: ProcessingProgress) {
         if (lastStatusId == processingProgress.statusTextResourceId
-            && System.currentTimeMillis() - lastProgressUpdate < 2000)
+            && System.currentTimeMillis() - lastProgressUpdate < 250
+        )
             return
         lastProgressUpdate = System.currentTimeMillis()
         lastStatusId = processingProgress.statusTextResourceId
@@ -153,23 +161,29 @@ class UniversalProcessorForegroundService : Service() {
         return Intent(this, SendNotificationBroadcastReceiver::class.java).apply {
             action = ACTION_SHARE_MEDIA
 
-            putExtra(KEY_MEDIA_CAPTION, processingResult.caption)
-            putExtra(KEY_MIME_TYPE, getMimeForContentType(processingResult.contentType))
+            val mediaInfo = processingResult.mediaInfo
+
+            putExtra(KEY_MEDIA_CAPTION, mediaInfo.caption)
+            putExtra(KEY_MIME_TYPE, getMimeForContentType(mediaInfo.mediaContentType))
             putExtra(
-                KEY_MEDIA_FLAG, when (processingResult.contentType) {
-                    MediaContentType.GALLERY -> FLAG_MULTIPLE_MEDIA
-                    MediaContentType.TEXT -> FLAG_NO_MEDIA
+                KEY_MEDIA_FLAG, when (mediaInfo.mediaContentType) {
+                    GALLERY -> FLAG_MULTIPLE_MEDIA
+                    TEXT -> FLAG_NO_MEDIA
                     else -> FLAG_SINGLE_MEDIA
                 }
             )
-            when (processingResult.contentType) {
-                MediaContentType.GALLERY -> putExtra(
+            when (mediaInfo.mediaContentType) {
+                GALLERY -> putExtra(
                     KEY_MEDIA_URI_LIST,
-                    ArrayList(processingResult.mediaUris)
+                    ArrayList(mediaInfo.mediaDownloadList.stream().map { it.metadata.uri }
+                        .collect(Collectors.toList()))
                 )
-                MediaContentType.TEXT -> {
+                TEXT -> {
                 }
-                else -> putExtra(KEY_MEDIA_SINGLE_URI, processingResult.mediaUris.first())
+                else -> putExtra(
+                    KEY_MEDIA_SINGLE_URI,
+                    mediaInfo.mediaDownloadList.first().metadata.uri
+                )
             }
         }
     }
@@ -182,6 +196,10 @@ class UniversalProcessorForegroundService : Service() {
         NotificationManagerCompat.from(applicationContext)
     }
 
+    @Suppress("SameParameterValue")
+    private fun cancelNotification(id: Int) = mNotificationManager.cancel(id)
+
+    @Suppress("SameParameterValue")
     private fun notify(id: Int, notification: Notification) =
         mNotificationManager.notify(id, notification)
 
@@ -263,6 +281,7 @@ class UniversalProcessorForegroundService : Service() {
     }
 
     private fun notificationBuilder(channelId: String): NotificationCompat.Builder {
+        @Suppress("DEPRECATION")
         return if (VERSION.SDK_INT >= VERSION_CODES.O) {
             NotificationCompat.Builder(applicationContext, channelId)
         } else
@@ -342,17 +361,18 @@ class UniversalProcessorForegroundService : Service() {
             "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"
 
         private val contentTypeToFileNameMap = mapOf(
-            MediaContentType.GIF to "gif.mp4",
-            MediaContentType.VIDEO to "video.mp4",
-            MediaContentType.IMAGE to "image.jpg",
-            MediaContentType.GALLERY to "image_%d.jpg",
+            GIF to "gif.mp4",
+            VIDEO to "video.mp4",
+            IMAGE to "image.jpg",
+            GALLERY to "image_%d.jpg",
         )
 
         private val contentTypeToMIME = mapOf(
-            MediaContentType.GIF to "video/*",
-            MediaContentType.VIDEO to "video/*",
-            MediaContentType.IMAGE to "image/*",
-            MediaContentType.GALLERY to "image/*",
+            GIF to "video/*",
+            VIDEO to "video/*",
+            IMAGE to "image/*",
+            GALLERY to "image/*",
+            TEXT to "text/plain"
         )
     }
 }

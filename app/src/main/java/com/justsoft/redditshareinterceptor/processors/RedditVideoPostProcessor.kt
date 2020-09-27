@@ -3,9 +3,7 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
-import com.justsoft.redditshareinterceptor.model.media.MediaModel
-import com.justsoft.redditshareinterceptor.model.media.mediaListOf
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -14,10 +12,26 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import java.net.URLEncoder
+import java.util.*
+import kotlin.collections.ArrayList
 
 class RedditVideoPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
-        redditPost.url.contains("v.redd.it")
+        with(redditPost.url) {
+            isVReddit() || ((isIReddit() || isIImgur()) && hasGifExtension())
+        }
+
+    private fun String.isVReddit(): Boolean =
+        this.contains("v.redd.it")
+
+    private fun String.isIReddit(): Boolean =
+        this.contains("i.redd.it")
+
+    private fun String.isIImgur(): Boolean =
+        this.contains("i.imgur.com")
+
+    private fun String.hasGifExtension(): Boolean =
+        this.toLowerCase(Locale.ROOT).endsWith(".gif")
 
     override fun getPostContentType(
         redditPost: RedditPost,
@@ -40,10 +54,7 @@ class RedditVideoPostProcessor : PostProcessor {
             .getElementsByTag("tbody")[0]
             .getElementsByTag("tr")
 
-        val links = if (contentType == MediaContentType.GIF)
-            getLinks(tableRows)
-        else
-            generateVideoLinks(getLinks(tableRows), requestHelper)
+        val links = generateVideoLinks(getLinks(tableRows), requestHelper)
 
         savedState.putBoolean(BUNDLE_IS_GIF, contentType == MediaContentType.GIF)
         savedState.putStringArray(BUNDLE_URLS, links.toArray(arrayOf<String>()))
@@ -51,11 +62,11 @@ class RedditVideoPostProcessor : PostProcessor {
         return contentType
     }
 
-    override fun getAllPossibleMediaModels(
+    override fun getAllPossibleMediaDownloadObjects(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): List<MediaDownloadObject> {
         val urls = savedState.getStringArray(BUNDLE_URLS)
             ?: throw IllegalStateException("savedState does not contain $BUNDLE_URLS key")
         val isGif = savedState.getBoolean(BUNDLE_IS_GIF)
@@ -67,16 +78,19 @@ class RedditVideoPostProcessor : PostProcessor {
         isGif: Boolean,
         directUrls: Array<String>,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): List<MediaDownloadObject> {
         val contentType = if (isGif) MediaContentType.GIF else MediaContentType.VIDEO
-        val list = mediaListOf(contentType)
+        val list = mutableListOf<MediaDownloadObject>()
         runBlocking(Dispatchers.IO) {
-            for (url in directUrls)
+            for (url in directUrls) {
                 launch {
                     list.add(
-                        MediaModel(url, contentType, requestHelper.getContentLength(url))
+                        MediaDownloadObject(url, contentType).apply {
+                            metadata.size = requestHelper.getContentLength(url)
+                        }
                     )
                 }
+            }
         }
         return list
     }
@@ -89,18 +103,22 @@ class RedditVideoPostProcessor : PostProcessor {
         runBlocking(Dispatchers.IO) {
             for (genlinkUrl in genlinkUrls)
                 launch {
-                    val linkJson = requestHelper
-                        .readHttpJsonResponse("$RIPSAVE_LINK$genlinkUrl")
-                        .getJSONObject("data")
-                    @Suppress("BlockingMethodInNonBlockingContext")
-                    links.add(
-                        StringBuilder()
-                            .append("${RIPSAVE_LINK}/download")
-                            .append("?s=${linkJson.getString("s")}")
-                            .append("&f=${linkJson.getString("f")}")
-                            .append("&t=${URLEncoder.encode(linkJson.getString("t"), "utf-8")}")
-                            .toString()
-                    )
+                    if (genlinkUrl.startsWith("/genlink")) {
+                        val linkJson = requestHelper
+                            .readHttpJsonResponse("$RIPSAVE_LINK$genlinkUrl")
+                            .getJSONObject("data")
+                        @Suppress("BlockingMethodInNonBlockingContext")
+                        links.add(
+                            StringBuilder()
+                                .append("${RIPSAVE_LINK}/download")
+                                .append("?s=${linkJson.getString("s")}")
+                                .append("&f=${linkJson.getString("f")}")
+                                .append("&t=${URLEncoder.encode(linkJson.getString("t"), "utf-8")}")
+                                .toString()
+                        )
+                    } else {
+                        links.add(genlinkUrl)
+                    }
                 }
         }
         return links

@@ -4,12 +4,12 @@ import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.MultipleSuitableProcessorsExceptions
-import com.justsoft.redditshareinterceptor.NoSuitableProcessorException
 import com.justsoft.redditshareinterceptor.PostContentTypeAcquiringException
 import com.justsoft.redditshareinterceptor.PostContentUrlAcquiringException
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.model.media.MediaList
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
+import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.processors.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.RequestHelper
@@ -20,20 +20,23 @@ class RedditUrlHandler : UrlHandler {
 
     private val redditPostProcessors: List<PostProcessor> = listOf(
         RedditImagePostProcessor(),
-        //ImgurImageProcessor(),
         GfycatPostProcessor(),
         RedditVideoPostProcessor(),
         RedditTextPostProcessor(),
         RedGifsPostProcessor(),
         RedditGalleryPostProcessor(),
-        StreamablePostProcessor(),
-        RedditTwitterPostProcessor()
+        StreamablePostProcessor()
     )
+
+    private val unknownPostProcessor = UnknownContentUrlPostProcessor()
 
     override fun isHandlerSuitableForUrl(url: String): Boolean =
         Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
 
-    override fun processUrlAndGetMedia(url: String, requestHelper: RequestHelper): MediaList {
+    /**
+     * @return fully-featured MediaDownloadInfo with all possible downloads, e.g. unfiltered download list
+     */
+    override fun processUrl(url: String, requestHelper: RequestHelper): MediaDownloadInfo {
         val stopwatch = Stopwatch()
 
         val cleanUrl = getPostApiUrl(url)
@@ -74,10 +77,12 @@ class RedditUrlHandler : UrlHandler {
             "Got post media list in ${stopwatch.restartAndGetTimeElapsed()} ms"
         )
 
-        unfilteredMedia.caption =
+        val caption =
             postProcessor.getPostCaption(redditPost, postProcessorBundle, requestHelper)
 
-        return unfilteredMedia
+        return MediaDownloadInfo(
+            postContentType, caption, unfilteredMedia
+        )
     }
 
     private fun getUnfilteredMedia(
@@ -85,9 +90,9 @@ class RedditUrlHandler : UrlHandler {
         postObject: RedditPost,
         postProcessorBundle: Bundle,
         requestHelper: RequestHelper
-    ): MediaList {
+    ): List<MediaDownloadObject> {
         return try {
-            postProcessor.getAllPossibleMediaModels(
+            postProcessor.getAllPossibleMediaDownloadObjects(
                 postObject,
                 postProcessorBundle,
                 requestHelper
@@ -119,9 +124,9 @@ class RedditUrlHandler : UrlHandler {
                 suitableProcessors.add(processor)
             }
         }
-        when (suitableProcessors.size) {
-            0 -> throw  NoSuitableProcessorException("Post url is ${redditPost.url}")
-            1 -> return suitableProcessors.first()
+        return when (suitableProcessors.size) {
+            0 -> unknownPostProcessor
+            1 -> suitableProcessors.first()
             else -> throw MultipleSuitableProcessorsExceptions(processors = suitableProcessors)
         }
     }
@@ -132,14 +137,15 @@ class RedditUrlHandler : UrlHandler {
         return "https://www.reddit.com/by_id/t3_$id/"
     }
 
-    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost =
-        RedditPost(
-            requestHelper.readHttpJsonResponse("$postUrl.json")
-                .getJSONObject("data")
+    fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost {
+        val response = requestHelper.readHttpJsonResponse("$postUrl.json")
+        return RedditPost(
+            response.getJSONObject("data")
                 .getJSONArray("children")
                 .getJSONObject(0)
                 .getJSONObject("data")
         )
+    }
 
     companion object {
         private const val LOG_TAG = "RedditHandler"
