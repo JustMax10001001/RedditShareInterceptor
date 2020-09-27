@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.MultipleSuitableProcessorsExceptions
-import com.justsoft.redditshareinterceptor.NoSuitableProcessorException
 import com.justsoft.redditshareinterceptor.PostContentTypeAcquiringException
 import com.justsoft.redditshareinterceptor.PostContentUrlAcquiringException
 import com.justsoft.redditshareinterceptor.model.RedditPost
@@ -20,15 +19,15 @@ class RedditUrlHandler : UrlHandler {
 
     private val redditPostProcessors: List<PostProcessor> = listOf(
         RedditImagePostProcessor(),
-        //ImgurImageProcessor(),
         GfycatPostProcessor(),
         RedditVideoPostProcessor(),
         RedditTextPostProcessor(),
         RedGifsPostProcessor(),
         RedditGalleryPostProcessor(),
-        StreamablePostProcessor(),
-        RedditTwitterPostProcessor()
+        StreamablePostProcessor()
     )
+
+    private val unknownPostProcessor = UnknownContentUrlPostProcessor()
 
     override fun isHandlerSuitableForUrl(url: String): Boolean =
         Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/\\w+/)").matcher(url).find()
@@ -119,9 +118,9 @@ class RedditUrlHandler : UrlHandler {
                 suitableProcessors.add(processor)
             }
         }
-        when (suitableProcessors.size) {
-            0 -> throw  NoSuitableProcessorException("Post url is ${redditPost.url}")
-            1 -> return suitableProcessors.first()
+        return when (suitableProcessors.size) {
+            0 -> unknownPostProcessor
+            1 -> suitableProcessors.first()
             else -> throw MultipleSuitableProcessorsExceptions(processors = suitableProcessors)
         }
     }

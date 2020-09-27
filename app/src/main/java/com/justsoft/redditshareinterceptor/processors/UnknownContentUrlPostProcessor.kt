@@ -3,32 +3,26 @@ package com.justsoft.redditshareinterceptor.processors
 import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.TEXT
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadList
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.mediaDownloadListOf
 import com.justsoft.redditshareinterceptor.util.RequestHelper
 
-class RedditTwitterPostProcessor : PostProcessor {
-    override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
-        redditPost.url.contains("twitter.com")
+class UnknownContentUrlPostProcessor: PostProcessor {
+    override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean = true
 
     override fun getPostContentType(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaContentType =
-        MediaContentType.TEXT
+    ): MediaContentType = TEXT
 
     override fun getAllPossibleMediaModels(
         redditPost: RedditPost,
         savedState: Bundle,
         requestHelper: RequestHelper
-    ): MediaDownloadList = mediaDownloadListOf(
-        MediaDownloadObject(
-            redditPost.url,
-            MediaContentType.TEXT,
-        )
-    )
+    ): MediaDownloadList = mediaDownloadListOf(MediaDownloadObject(redditPost.url, TEXT))
 
     override fun getPostCaption(
         redditPost: RedditPost,
