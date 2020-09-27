@@ -60,8 +60,12 @@ class UniversalProcessorForegroundService : Service() {
             buildNotificationChannels()
         }
 
-        mUniversalUrlProcessor.error(::onError)
-        mUniversalUrlProcessor.result(::onResult)
+        mUniversalUrlProcessor.finished { result ->
+            if (result.processingSuccessful)
+                onResult(result)
+            else
+                onError(result.cause)
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -156,26 +160,28 @@ class UniversalProcessorForegroundService : Service() {
         return Intent(this, SendNotificationBroadcastReceiver::class.java).apply {
             action = ACTION_SHARE_MEDIA
 
-            putExtra(KEY_MEDIA_CAPTION, processingResult.caption)
-            putExtra(KEY_MIME_TYPE, getMimeForContentType(processingResult.contentType))
+            val mediaInfo = processingResult.mediaInfo
+
+            putExtra(KEY_MEDIA_CAPTION, mediaInfo.caption)
+            putExtra(KEY_MIME_TYPE, getMimeForContentType(mediaInfo.mediaContentType))
             putExtra(
-                KEY_MEDIA_FLAG, when (processingResult.contentType) {
+                KEY_MEDIA_FLAG, when (mediaInfo.mediaContentType) {
                     MediaContentType.GALLERY -> FLAG_MULTIPLE_MEDIA
                     MediaContentType.TEXT -> FLAG_NO_MEDIA
                     else -> FLAG_SINGLE_MEDIA
                 }
             )
-            when (processingResult.contentType) {
+            when (mediaInfo.mediaContentType) {
                 MediaContentType.GALLERY -> putExtra(
                     KEY_MEDIA_URI_LIST,
-                    ArrayList(processingResult.downloadedMedia.stream().map { it.metadata.uri }
+                    ArrayList(mediaInfo.mediaDownloadList.stream().map { it.metadata.uri }
                         .collect(Collectors.toList()))
                 )
                 MediaContentType.TEXT -> {
                 }
                 else -> putExtra(
                     KEY_MEDIA_SINGLE_URI,
-                    processingResult.downloadedMedia.first().metadata.uri
+                    mediaInfo.mediaDownloadList.first().metadata.uri
                 )
             }
         }
@@ -274,6 +280,7 @@ class UniversalProcessorForegroundService : Service() {
     }
 
     private fun notificationBuilder(channelId: String): NotificationCompat.Builder {
+        @Suppress("DEPRECATION")
         return if (VERSION.SDK_INT >= VERSION_CODES.O) {
             NotificationCompat.Builder(applicationContext, channelId)
         } else
