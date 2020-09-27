@@ -39,7 +39,7 @@ class UniversalUrlProcessor(
             ProcessingResult.success(info, delta)
         } catch (e: Exception) {
             val delta = stopwatch.stopAndGetTimeElapsed()
-            Log.e(LOG_TAG, "Processing failed in $delta ms")
+            Log.e(LOG_TAG, "Processing failed in $delta ms", e)
 
             ProcessingResult.error(e, delta)
         }
