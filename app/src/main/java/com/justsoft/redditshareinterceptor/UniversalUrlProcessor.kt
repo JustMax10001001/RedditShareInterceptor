@@ -84,10 +84,10 @@ class UniversalUrlProcessor(
         mediaDownloadInfo.mediaDownloadList.clear()
         mediaDownloadInfo.mediaDownloadList.addAll(filteredMediaList)
 
-        generateDestinationUris(mediaDownloadInfo)
-        Log.d(LOG_TAG, "Generated destination Uris")
-
         if (mediaDownloadInfo.mediaContentType != MediaContentType.TEXT) {
+            generateDestinationUris(mediaDownloadInfo)
+            Log.d(LOG_TAG, "Generated destination Uris")
+
             downloadMedia(mediaDownloadInfo) { progress: ProcessingProgress ->
                 progressCallback(
                     ProcessingProgress(
