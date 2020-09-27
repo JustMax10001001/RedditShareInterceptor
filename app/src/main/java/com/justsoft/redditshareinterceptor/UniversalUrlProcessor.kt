@@ -36,6 +36,12 @@ class UniversalUrlProcessor(
             val delta = stopwatch.stopAndGetTimeElapsed()
             Log.d(LOG_TAG, "Processing succeeded in $delta ms")
 
+            FirebaseAnalyticsHelper.getInstance().logEvent("url_processed") {
+                param("website_handler", selectUrlHandler(url)::class.java.simpleName)
+                param("media_type", info.mediaContentType.toString())
+                param("media_count", info.mediaDownloadList.count().toLong())
+                param("processing_time", delta)
+            }
             ProcessingResult.success(info, delta)
         } catch (e: Exception) {
             val delta = stopwatch.stopAndGetTimeElapsed()
@@ -51,10 +57,6 @@ class UniversalUrlProcessor(
         progressCallback: (ProcessingProgress) -> Unit
     ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
-        FirebaseAnalyticsHelper.getInstance().logEvent("select_url_handler") {
-            param("url", url)
-            param("handler_name", urlHandler.javaClass.simpleName)
-        }
         progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
 
         val mediaDownloadInfo = urlHandler.processUrl(url, requestHelper)
