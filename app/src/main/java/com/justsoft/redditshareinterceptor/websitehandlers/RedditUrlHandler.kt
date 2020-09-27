@@ -81,7 +81,7 @@ class RedditUrlHandler : UrlHandler {
             postProcessor.getPostCaption(redditPost, postProcessorBundle, requestHelper)
 
         return MediaDownloadInfo(
-            postContentType, caption, unfilteredMedia
+            postContentType, caption, url, unfilteredMedia
         )
     }
 
