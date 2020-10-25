@@ -32,10 +32,7 @@ class RedditPostHandlerIntegrationTest {
             { _, _ -> getInternalFileUri("test.test")},
             this::openStreamForUri
         )
-        postHandler.error {
-            throw it
-        }
-        postHandler.finished { assert(true) }
+        postHandler.finished { assert(it.processingSuccessful) }
     }
 
     private fun openStreamForUri(uri: Uri): OutputStream =
