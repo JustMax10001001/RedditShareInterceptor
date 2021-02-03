@@ -42,7 +42,7 @@ class MPDParser(
         var adaptationSetCount = 0
         parser.require(XmlPullParser.START_TAG, NAMESPACE, TAG_MPD)
 
-        while (parser.next() != XmlPullParser.END_TAG) {
+        while (!(parser.next() == XmlPullParser.END_TAG && parser.name == TAG_MPD)) {
             if (parser.eventType != XmlPullParser.START_TAG) {
                 // skip this event
                 continue
