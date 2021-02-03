@@ -1,5 +1,6 @@
 package com.justsoft.redditshareinterceptor.model.media
 
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
 import kotlin.math.abs
 
@@ -18,12 +19,18 @@ class MediaListFilter {
                 return listOf(srcMediaList.first())
 
             val isVideo =
-                contentType == MediaContentType.VIDEO || contentType == MediaContentType.GIF
+                contentType == VIDEO || contentType == GIF || contentType == VIDEO_AUDIO
             val list = mutableListOf<MediaDownloadObject>()
-            list.addAll(
-                srcMediaList.groupBy(MediaDownloadObject::galleryIndex)
-                    .map { processSublist(mediaQualitySpec, it.value, isVideo) }
-            )
+
+            when (contentType) {
+                GALLERY -> list.addAll(srcMediaList.groupBy(MediaDownloadObject::galleryIndex)
+                    .map { processSublist(mediaQualitySpec, it.value, isVideo) })
+                VIDEO_AUDIO -> {
+                    list.add(srcMediaList.first { it.mediaType == AUDIO })
+                    list.add(processSublist(mediaQualitySpec, srcMediaList, isVideo))
+                }
+                else -> list.add(processSublist(mediaQualitySpec, srcMediaList, isVideo))
+            }
             return list
         }
 
