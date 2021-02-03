@@ -8,15 +8,17 @@ import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
+import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
 import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import java.io.FileOutputStream
 import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
     private val createUri: (MediaContentType, Int) -> Uri,
-    openOutputStream: (Uri) -> OutputStream
+    private val openOutputStream: (Uri) -> OutputStream
 ) {
 
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
@@ -98,6 +100,28 @@ class UniversalUrlProcessor(
                     )
                 )
             }
+        }
+
+        if (mediaDownloadInfo.mediaContentType == MediaContentType.VIDEO_AUDIO) {
+            val videoUri = mediaDownloadInfo
+                .mediaDownloadList
+                .first { it.mediaType == MediaContentType.VIDEO }
+                .metadata
+                .uri
+            val audioUri = mediaDownloadInfo
+                .mediaDownloadList
+                .first { it.mediaType == MediaContentType.AUDIO }
+                .metadata
+                .uri
+
+            combineVideoAndAudio(
+                videoUri,
+                audioUri,
+                openOutputStream(createUri(MediaContentType.VIDEO_AUDIO, 0)) as FileOutputStream
+            )
+            progressCallback(
+                ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
+            )
         }
 
         if (filteredMediaList.isNotEmpty())
