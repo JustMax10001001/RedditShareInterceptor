@@ -102,13 +102,12 @@ class MPDParser(
     }
 
     private fun readText(parser: XmlPullParser): String {
+        var value = ""
         if (parser.next() == XmlPullParser.TEXT) {
-            return parser.let {
-                it.nextTag()
-                it.text
-            }
+            value = parser.text
+            parser.nextTag()
         }
-        return ""
+        return value
     }
 
     private fun getBitrate(parser: XmlPullParser) =
