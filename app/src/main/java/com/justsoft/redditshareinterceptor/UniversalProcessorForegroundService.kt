@@ -183,7 +183,7 @@ class UniversalProcessorForegroundService : Service() {
                 }
                 else -> putExtra(
                     KEY_MEDIA_SINGLE_URI,
-                    mediaInfo.mediaDownloadList.first().metadata.uri
+                    getUriForContentType(processingResult.mediaInfo.mediaContentType, 0)
                 )
             }
         }
