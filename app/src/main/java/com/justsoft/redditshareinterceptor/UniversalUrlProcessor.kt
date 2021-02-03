@@ -6,6 +6,7 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
 import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
@@ -88,7 +89,7 @@ class UniversalUrlProcessor(
         mediaDownloadInfo.mediaDownloadList.clear()
         mediaDownloadInfo.mediaDownloadList.addAll(filteredMediaList)
 
-        if (mediaDownloadInfo.mediaContentType != MediaContentType.TEXT) {
+        if (mediaDownloadInfo.mediaContentType != TEXT) {
             generateDestinationUris(mediaDownloadInfo)
             Log.d(LOG_TAG, "Generated destination Uris")
 
@@ -102,7 +103,7 @@ class UniversalUrlProcessor(
             }
         }
 
-        if (mediaDownloadInfo.mediaContentType == MediaContentType.VIDEO_AUDIO) {
+        if (mediaDownloadInfo.mediaContentType == VIDEO_AUDIO) {
             combineVideoAndAudio(mediaDownloadInfo)
             progressCallback(
                 ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
@@ -124,19 +125,19 @@ class UniversalUrlProcessor(
 
             val videoUri = mediaDownloadInfo
                 .mediaDownloadList
-                .first { it.mediaType == MediaContentType.VIDEO }
+                .first { it.mediaType == VIDEO }
                 .metadata
                 .uri
             val audioUri = mediaDownloadInfo
                 .mediaDownloadList
-                .first { it.mediaType == MediaContentType.AUDIO }
+                .first { it.mediaType == AUDIO }
                 .metadata
                 .uri
 
             combineVideoAndAudio(
                 videoUri,
                 audioUri,
-                openOutputStream(createUri(MediaContentType.VIDEO_AUDIO, 0)) as FileOutputStream
+                openOutputStream(createUri(VIDEO_AUDIO, 0)) as FileOutputStream
             )
 
             Log.d(LOG_TAG, "Video and audio combined in ${sw.stopAndGetTimeElapsed()} ms.")
@@ -149,7 +150,10 @@ class UniversalUrlProcessor(
         try {
             filteredDownloadInfo.mediaDownloadList.forEach { media ->
                 media.metadata.uri = createUri(
-                    filteredDownloadInfo.mediaContentType,
+                    if (filteredDownloadInfo.mediaContentType == GALLERY)
+                        GALLERY
+                    else
+                        media.mediaType,
                     media.galleryIndex
                 )
             }
