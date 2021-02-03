@@ -17,6 +17,12 @@ class RedditPost(
     val subreddit: String
         get() = postData.getString("subreddit_name_prefixed")
 
+    val mediaDashUrl: String
+        get() = postData
+            .getJSONObject("media")
+            .getJSONObject("reddit_video")
+            .getString("dash_url")
+
     override fun toString(): String {
         return postData.toString()
     }
