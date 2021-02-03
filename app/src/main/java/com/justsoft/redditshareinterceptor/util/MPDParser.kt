@@ -52,7 +52,7 @@ class MPDParser(
                 ++adaptationSetCount
                 mediaObjects.add(parseMediaObject(parser))
             } else {
-                skipToTagEnd(parser)
+                continue
             }
         }
 
