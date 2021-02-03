@@ -5,7 +5,7 @@ import android.util.Log
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
-import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL

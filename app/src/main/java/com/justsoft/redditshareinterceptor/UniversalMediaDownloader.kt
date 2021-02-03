@@ -6,7 +6,7 @@ import com.justsoft.redditshareinterceptor.downloaders.SingleFileDownloader
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
-import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import java.io.OutputStream
 
 class UniversalMediaDownloader(

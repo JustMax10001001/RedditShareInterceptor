@@ -7,8 +7,8 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
 import java.io.OutputStream

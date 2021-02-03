@@ -2,6 +2,7 @@ package com.justsoft.redditshareinterceptor.util
 
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.volley.toolbox.Volley
+import com.justsoft.redditshareinterceptor.util.request.VolleyRequestHelper
 import org.junit.Assert.assertEquals
 import org.junit.Test
 

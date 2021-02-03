@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.util.request
 
 import org.json.JSONObject
 import java.io.BufferedReader

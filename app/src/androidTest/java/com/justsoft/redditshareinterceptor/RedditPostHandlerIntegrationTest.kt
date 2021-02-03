@@ -5,7 +5,7 @@ import androidx.core.content.FileProvider
 import androidx.test.platform.app.InstrumentationRegistry
 import com.android.volley.toolbox.Volley
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
-import com.justsoft.redditshareinterceptor.util.VolleyRequestHelper
+import com.justsoft.redditshareinterceptor.util.request.VolleyRequestHelper
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test

@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.util.request
 
 import com.android.volley.DefaultRetryPolicy
 import com.android.volley.RequestQueue

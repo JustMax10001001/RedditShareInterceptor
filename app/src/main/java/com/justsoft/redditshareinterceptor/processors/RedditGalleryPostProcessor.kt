@@ -6,7 +6,7 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.GALLERY
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.IMAGE
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.util.urlDecode
 import org.json.JSONObject
 

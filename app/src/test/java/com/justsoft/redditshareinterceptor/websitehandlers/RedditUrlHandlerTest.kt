@@ -2,8 +2,8 @@ package com.justsoft.redditshareinterceptor.websitehandlers
 
 import com.justsoft.redditshareinterceptor.NoSuitableProcessorException
 import com.justsoft.redditshareinterceptor.processors.*
-import com.justsoft.redditshareinterceptor.util.RequestHelper
-import com.justsoft.redditshareinterceptor.util.TestRequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.TestRequestHelper
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Test
