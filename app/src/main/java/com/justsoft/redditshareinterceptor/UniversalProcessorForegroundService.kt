@@ -365,6 +365,8 @@ class UniversalProcessorForegroundService : Service() {
             VIDEO to "video.mp4",
             IMAGE to "image.jpg",
             GALLERY to "image_%d.jpg",
+            AUDIO to "audio.mp4",
+            VIDEO_AUDIO to "video_w_audio.mp4"
         )
 
         private val contentTypeToMIME = mapOf(
@@ -372,7 +374,9 @@ class UniversalProcessorForegroundService : Service() {
             VIDEO to "video/*",
             IMAGE to "image/*",
             GALLERY to "image/*",
-            TEXT to "text/plain"
+            TEXT to "text/plain",
+            AUDIO to "audio/mp4",
+            VIDEO_AUDIO to "video/*",
         )
     }
 }
