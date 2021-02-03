@@ -1,5 +1,5 @@
 package com.justsoft.redditshareinterceptor.model.media
 
 enum class MediaContentType {
-    IMAGE, VIDEO, GIF, TEXT, GALLERY
+    IMAGE, VIDEO, GIF, TEXT, GALLERY, AUDIO
 }
