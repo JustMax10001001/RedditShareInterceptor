@@ -103,6 +103,25 @@ class UniversalUrlProcessor(
         }
 
         if (mediaDownloadInfo.mediaContentType == MediaContentType.VIDEO_AUDIO) {
+            combineVideoAndAudio(mediaDownloadInfo)
+            progressCallback(
+                ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
+            )
+        }
+
+        if (filteredMediaList.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
+
+        return mediaDownloadInfo
+    }
+
+    private fun combineVideoAndAudio(mediaDownloadInfo: MediaDownloadInfo) {
+        try {
+            val sw = Stopwatch()
+            sw.start()
+
+            Log.d(LOG_TAG, "Starting to combine video and audio")
+
             val videoUri = mediaDownloadInfo
                 .mediaDownloadList
                 .first { it.mediaType == MediaContentType.VIDEO }
@@ -119,15 +138,11 @@ class UniversalUrlProcessor(
                 audioUri,
                 openOutputStream(createUri(MediaContentType.VIDEO_AUDIO, 0)) as FileOutputStream
             )
-            progressCallback(
-                ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
-            )
+
+            Log.d(LOG_TAG, "Video and audio combined in ${sw.stopAndGetTimeElapsed()} ms.")
+        } catch (e: Exception) {
+            throw MediaVideoAudioCombineException(cause = e)
         }
-
-        if (filteredMediaList.isNotEmpty())
-            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
-
-        return mediaDownloadInfo
     }
 
     private fun generateDestinationUris(filteredDownloadInfo: MediaDownloadInfo) {
