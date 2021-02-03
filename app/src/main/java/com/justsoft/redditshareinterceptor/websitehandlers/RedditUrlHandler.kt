@@ -22,10 +22,11 @@ class RedditUrlHandler : UrlHandler {
         RedditImagePostProcessor(),
         GfycatPostProcessor(),
         RedditVideoPostProcessor(),
+        RedditImageGifPostProcessor(),
         RedditTextPostProcessor(),
         RedGifsPostProcessor(),
         RedditGalleryPostProcessor(),
-        StreamablePostProcessor()
+        StreamablePostProcessor(),
     )
 
     private val unknownPostProcessor = UnknownContentUrlPostProcessor()
