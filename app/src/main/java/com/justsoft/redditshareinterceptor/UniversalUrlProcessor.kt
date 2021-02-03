@@ -13,12 +13,14 @@ import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
 import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
     private val createUri: (MediaContentType, Int) -> Uri,
+    private val getFileByContent: (MediaContentType, Int) -> File,
     private val openOutputStream: (Uri) -> OutputStream
 ) {
 
@@ -103,6 +105,9 @@ class UniversalUrlProcessor(
             }
         }
 
+        if (filteredMediaList.isNotEmpty())
+            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
+
         if (mediaDownloadInfo.mediaContentType == VIDEO_AUDIO) {
             combineVideoAndAudio(mediaDownloadInfo)
             progressCallback(
@@ -110,8 +115,6 @@ class UniversalUrlProcessor(
             )
         }
 
-        if (filteredMediaList.isNotEmpty())
-            Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
 
         return mediaDownloadInfo
     }
@@ -123,20 +126,9 @@ class UniversalUrlProcessor(
 
             Log.d(LOG_TAG, "Starting to combine video and audio")
 
-            val videoUri = mediaDownloadInfo
-                .mediaDownloadList
-                .first { it.mediaType == VIDEO }
-                .metadata
-                .uri
-            val audioUri = mediaDownloadInfo
-                .mediaDownloadList
-                .first { it.mediaType == AUDIO }
-                .metadata
-                .uri
-
             combineVideoAndAudio(
-                videoUri,
-                audioUri,
+                getFileByContent(VIDEO, 0),
+                getFileByContent(AUDIO, 0),
                 openOutputStream(createUri(VIDEO_AUDIO, 0)) as FileOutputStream
             )
 

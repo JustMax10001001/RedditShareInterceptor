@@ -48,7 +48,8 @@ class UniversalProcessorForegroundService : Service() {
         UniversalUrlProcessor(
             VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
             this::getUriForContentType,
-            this::openStreamForUri
+            this::getInternalFileByContentType,
+            this::openStreamForUri,
         )
     }
 
@@ -327,6 +328,12 @@ class UniversalProcessorForegroundService : Service() {
     private fun getUriForContentType(mediaContentType: MediaContentType, mediaIndex: Int): Uri =
         getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex))
 
+    private fun getInternalFileByContentType(
+        mediaContentType: MediaContentType,
+        index: Int = 0
+    ): File {
+        return File(filesDir, getFileNameForContentType(mediaContentType, index))
+    }
 
     private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
