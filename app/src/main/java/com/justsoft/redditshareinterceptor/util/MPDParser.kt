@@ -75,7 +75,7 @@ class MPDParser(
         val bitrate = getBitrate(parser)
 
         var url = ""
-        while (!(parser.nextTag() == XmlPullParser.END_TAG || parser.name == TAG_REPRESENTATION)) {
+        while (!(parser.nextTag() == XmlPullParser.END_TAG && parser.name == TAG_REPRESENTATION)) {
             if (parser.name == TAG_BASE_URL) {
                 url = getMediaURL(parser)
             } else {
