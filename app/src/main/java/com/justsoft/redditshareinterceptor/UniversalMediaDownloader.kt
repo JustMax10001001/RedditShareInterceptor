@@ -4,7 +4,6 @@ import android.net.Uri
 import com.justsoft.redditshareinterceptor.downloaders.MultipleFileDownloader
 import com.justsoft.redditshareinterceptor.downloaders.SingleFileDownloader
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
-import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
 import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import java.io.OutputStream
@@ -21,10 +20,10 @@ class UniversalMediaDownloader(
         mediaInfo: MediaDownloadInfo,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
-        if (mediaInfo.mediaContentType == MediaContentType.GALLERY) {
+        if (mediaInfo.mediaDownloadList.count() > 1) {
             multipleFileDownloader.downloadFiles(mediaInfo.mediaDownloadList, downloadProgressCallback)
         } else {
-            singleFileDownloader.downloadFile(mediaInfo.mediaDownloadList.first(), downloadProgressCallback)
+            singleFileDownloader.downloadFile(mediaInfo.mediaDownloadList.single(), downloadProgressCallback)
         }
     }
 }
