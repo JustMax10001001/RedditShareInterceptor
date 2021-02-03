@@ -7,27 +7,13 @@ import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.MPDParser
 import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import java.net.URL
-import java.util.*
 import java.util.regex.Pattern
-import kotlin.collections.HashMap
 
 class RedditVideoPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
         with(redditPost.url) {
             isVReddit()
         }
-
-    private fun String.isVReddit(): Boolean =
-        this.contains("v.redd.it")
-
-    private fun String.isIReddit(): Boolean =
-        this.contains("i.redd.it")
-
-    private fun String.isIImgur(): Boolean =
-        this.contains("i.imgur.com")
-
-    private fun String.hasGifExtension(): Boolean =
-        this.toLowerCase(Locale.ROOT).endsWith(".gif")
 
     /**
      * A property to temporary store the list of parsed MediaDownloadObjects

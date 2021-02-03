@@ -13,7 +13,7 @@ import org.json.JSONObject
 class RedditGalleryPostProcessor : PostProcessor {
 
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
-        redditPost.url.contains("reddit.com/gallery")
+        redditPost.url.isGallery()
 
     override fun getPostContentType(
         redditPost: RedditPost,
