@@ -2,6 +2,7 @@ package com.justsoft.redditshareinterceptor.util
 
 import org.junit.Assert.*
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 
 class TestRequestHelperTest {
@@ -13,6 +14,7 @@ class TestRequestHelperTest {
     }
 
     @Test
+    @Ignore("Ripsave is no longer used")
     fun readHttpTextResponse() {
         assertNotEquals(
             "",
@@ -24,6 +26,7 @@ class TestRequestHelperTest {
     }
 
     @Test
+    @Ignore("Ripsave is no longer used")
     fun readHttpJsonResponse() {
         assertNotNull(
             requestHelper.readHttpJsonResponse(
