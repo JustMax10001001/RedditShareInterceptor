@@ -1,5 +1,6 @@
 package com.justsoft.redditshareinterceptor.util
 
+import android.util.Patterns
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -11,3 +12,8 @@ fun urlDecode(encodedUrl: String): String =
         .replace("&amp;", "&")
         .replace("&lt;", "<")
         .replace("&rt;", ">")
+
+fun checkUrlString(url: String?): Boolean {
+    url ?: return false
+    return Patterns.WEB_URL.matcher(url).matches()
+}
