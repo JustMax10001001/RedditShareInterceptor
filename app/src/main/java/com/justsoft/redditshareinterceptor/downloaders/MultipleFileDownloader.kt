@@ -15,7 +15,7 @@ class MultipleFileDownloader(
 ) {
 
     fun downloadFiles(
-        downloadObjects: MutableList<MediaDownloadObject>,
+        downloadObjects: List<MediaDownloadObject>,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
         val objectCount = downloadObjects.count()
