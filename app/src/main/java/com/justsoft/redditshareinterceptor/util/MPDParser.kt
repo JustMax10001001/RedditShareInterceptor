@@ -50,7 +50,8 @@ class MPDParser(
 
             if (parser.name == TAG_ADAPTATION_SET) {
                 ++adaptationSetCount
-                mediaObjects.add(parseMediaObject(parser))
+                //mediaObjects.add(parseMediaObject(parser))
+                mediaObjects.addAll(parseAdaptationSet(parser))
             } else {
                 continue
             }
@@ -67,10 +68,32 @@ class MPDParser(
         return mediaObjects
     }
 
-    private fun parseMediaObject(parser: XmlPullParser): MediaDownloadObject {
-        val contentType = getContentType(parser)
-        parser.nextTag()
+    private fun parseAdaptationSet(parser: XmlPullParser): List<MediaDownloadObject> {
+        val mediaObjects = mutableListOf<MediaDownloadObject>()
 
+        parser.require(XmlPullParser.START_TAG, NAMESPACE, TAG_ADAPTATION_SET)
+
+        val contentType = getContentType(parser)
+
+        while (!(parser.next() == XmlPullParser.END_TAG && parser.name == TAG_ADAPTATION_SET)) {
+            if (parser.eventType != XmlPullParser.START_TAG) {
+                // skip this event
+                continue
+            }
+
+            if (parser.name == TAG_REPRESENTATION) {
+                mediaObjects.add(parseMediaObject(parser, contentType))
+            } else {
+                continue
+            }
+        }
+
+        parser.require(XmlPullParser.END_TAG, NAMESPACE, TAG_ADAPTATION_SET)
+
+        return mediaObjects
+    }
+
+    private fun parseMediaObject(parser: XmlPullParser, contentType: MediaContentType): MediaDownloadObject {
         parser.require(XmlPullParser.START_TAG, NAMESPACE, TAG_REPRESENTATION)
         val bitrate = getBitrate(parser)
 
