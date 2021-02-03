@@ -5,6 +5,7 @@ class MediaDownloadInfo(
     val caption: String,
     val requestUrl: String,
     srcMediaObjectList: List<MediaDownloadObject> = emptyList(),
+    val isVideoAudioPair: Boolean = false
 ) {
     val mediaDownloadList: MutableList<MediaDownloadObject> = mutableListOf()
 
