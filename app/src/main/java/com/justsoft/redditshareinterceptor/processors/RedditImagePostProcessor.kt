@@ -7,22 +7,11 @@ import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.util.urlDecode
 import org.json.JSONObject
-import java.util.*
 
 class RedditImagePostProcessor : PostProcessor {
 
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
         with(redditPost.url) { (isIReddit() || isIImgur()) && !hasGifExtension()}
-
-    private fun String.isIReddit(): Boolean =
-        this.contains("i.redd.it")
-
-    private fun String.isIImgur(): Boolean =
-        this.contains("i.imgur.com")
-
-    private fun String.hasGifExtension(): Boolean =
-        this.toLowerCase(Locale.ROOT).endsWith(".gif")
-
 
     override fun getPostContentType(
         redditPost: RedditPost,

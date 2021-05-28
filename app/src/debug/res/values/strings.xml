@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">[BETA] RedditShareInterceptor</string>
+    <string name="interceptor_label">[BETA] Download media and share</string>
     <string name="provider_name">com.justsoft.redditshareinterceptor.beta.provider</string>
 </resources>

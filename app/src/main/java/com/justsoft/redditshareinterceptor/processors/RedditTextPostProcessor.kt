@@ -9,7 +9,7 @@ import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 class RedditTextPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean =
         redditPost.url.contains("www.reddit.com") &&
-                !redditPost.url.contains("www.reddit.com/gallery")
+                !redditPost.url.isGallery()
 
     override fun getPostContentType(
         redditPost: RedditPost,

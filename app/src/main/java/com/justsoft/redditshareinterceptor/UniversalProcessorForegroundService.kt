@@ -48,7 +48,8 @@ class UniversalProcessorForegroundService : Service() {
         UniversalUrlProcessor(
             VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
             this::getUriForContentType,
-            this::openStreamForUri
+            this::getInternalFileByContentType,
+            this::openStreamForUri,
         )
     }
 
@@ -182,7 +183,7 @@ class UniversalProcessorForegroundService : Service() {
                 }
                 else -> putExtra(
                     KEY_MEDIA_SINGLE_URI,
-                    mediaInfo.mediaDownloadList.first().metadata.uri
+                    getUriForContentType(processingResult.mediaInfo.mediaContentType, 0)
                 )
             }
         }
@@ -327,6 +328,12 @@ class UniversalProcessorForegroundService : Service() {
     private fun getUriForContentType(mediaContentType: MediaContentType, mediaIndex: Int): Uri =
         getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex))
 
+    private fun getInternalFileByContentType(
+        mediaContentType: MediaContentType,
+        index: Int = 0
+    ): File {
+        return File(filesDir, getFileNameForContentType(mediaContentType, index))
+    }
 
     private fun getInternalFileUri(file: String): Uri {
         return FileProvider.getUriForFile(
@@ -365,6 +372,8 @@ class UniversalProcessorForegroundService : Service() {
             VIDEO to "video.mp4",
             IMAGE to "image.jpg",
             GALLERY to "image_%d.jpg",
+            AUDIO to "audio.mp4",
+            VIDEO_AUDIO to "video_w_audio.mp4"
         )
 
         private val contentTypeToMIME = mapOf(
@@ -372,7 +381,9 @@ class UniversalProcessorForegroundService : Service() {
             VIDEO to "video/*",
             IMAGE to "image/*",
             GALLERY to "image/*",
-            TEXT to "text/plain"
+            TEXT to "text/plain",
+            AUDIO to "audio/mp4",
+            VIDEO_AUDIO to "video/*",
         )
     }
 }
