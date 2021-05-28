@@ -63,6 +63,7 @@ class UniversalUrlProcessor(
     ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
         progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
+        Log.d(LOG_TAG, "Selected URL handler \"${urlHandler.javaClass.simpleName}\"")
 
         val mediaDownloadInfo = urlHandler.processUrl(url, requestHelper)
         Log.d(
