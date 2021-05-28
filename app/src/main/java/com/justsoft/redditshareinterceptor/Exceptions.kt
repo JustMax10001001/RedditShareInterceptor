@@ -102,3 +102,8 @@ class MediaFilterException(
     message: String = "Unable to filter through media available for download",
     cause: Throwable? = null
 ): PostProcessingException(message, cause)
+
+class MediaVideoAudioCombineException(
+    message: String = "Unable to combine video and audio",
+    cause: Throwable? = null
+): PostProcessingException(message, cause)

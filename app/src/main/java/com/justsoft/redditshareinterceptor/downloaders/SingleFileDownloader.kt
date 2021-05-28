@@ -5,7 +5,7 @@ import android.util.Log
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
-import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
@@ -55,15 +55,16 @@ class SingleFileDownloader(
 
                 val timeElapsed = System.currentTimeMillis() - downloadStartTime
 
+                val downloadSizeMiB = downloadSize / 1024.0 / 1024.0
+                val averageDownloadSpeed = downloadSizeMiB / timeElapsed * 1000
+
                 Log.d(
-                    "RequestHelper",
-                    ("Media of size %.2f MiB\r\n" +
-                            "downloaded in $timeElapsed ms.\r\n" +
+                    "SingleFileDownloader",
+                    ("Media of\r\n" +
+                            "size %.2f MiB\r\n" +
+                            "downloaded in $timeElapsed ms\r\n" +
                             "with speed of %.2f MiB/s\r\n")
-                        .format(
-                            downloadSize / 1024.0 / 1024.0,
-                            downloadSize / 1024.0 / 1024.0 / timeElapsed * 1000
-                        )
+                        .format(downloadSizeMiB, averageDownloadSpeed)
                 )
             }
         }

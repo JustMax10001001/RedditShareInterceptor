@@ -1,7 +1,7 @@
 package com.justsoft.redditshareinterceptor.websitehandlers
 
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
-import com.justsoft.redditshareinterceptor.util.RequestHelper
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 
 /**
  * Base interface for any website handler

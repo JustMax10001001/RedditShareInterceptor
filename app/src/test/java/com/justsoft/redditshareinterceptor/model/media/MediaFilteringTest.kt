@@ -32,7 +32,7 @@ class MediaFilteringTest {
 
     @Test
     fun getMostSuitableMedia_TestVideo_NormalConditions() {
-        val mediaList = MediaDownloadInfo(VIDEO)
+        val mediaList = MediaDownloadInfo(VIDEO, "caption", "url://host.com")
         mediaList.mediaDownloadList.addAll(
             listOf(
                 mockVideoMedia(1),
@@ -47,7 +47,7 @@ class MediaFilteringTest {
 
     @Test
     fun getMostSuitableMedia_TestVideo_ThresholdBiggerThenMaxVideo() {
-        val mediaList = MediaDownloadInfo(VIDEO)
+        val mediaList = MediaDownloadInfo(VIDEO, "caption", "url://host.com")
         mediaList.mediaDownloadList.addAll(
             listOf(
                 mockVideoMedia(1),
@@ -62,7 +62,7 @@ class MediaFilteringTest {
 
     @Test
     fun getMostSuitableMedia_TestVideo_ThresholdLowerThenMinVideo() {
-        val mediaList = MediaDownloadInfo(VIDEO)
+        val mediaList = MediaDownloadInfo(VIDEO, "caption", "url://host.com")
         mediaList.mediaDownloadList.addAll(
             listOf(
                 mockVideoMedia(4),
@@ -79,7 +79,7 @@ class MediaFilteringTest {
     fun getMostSuitableMedia_TestGallery_NormalConditions() {
         val mockSpec = Mockito.mock(MediaQualitySpec::class.java)
         Mockito.`when`(mockSpec.imageFileSize).thenReturn(15)
-        val mediaList = MediaDownloadInfo(GALLERY)
+        val mediaList = MediaDownloadInfo(GALLERY, "caption", "url://host.com")
         mediaList.mediaDownloadList.addAll(mockGallery().take(25).toList())
         filterMediaInfo(mockSpec, mediaList).forEach {
             assertEquals(16, it.metadata.size)
@@ -90,7 +90,7 @@ class MediaFilteringTest {
     fun getMostSuitableMedia_TestGallery_ThresholdBiggerThenMinImage() {
         val mockSpec = Mockito.mock(MediaQualitySpec::class.java)
         Mockito.`when`(mockSpec.imageFileSize).thenReturn(4)
-        val mediaList = MediaDownloadInfo(GALLERY)
+        val mediaList = MediaDownloadInfo(GALLERY, "caption", "url://host.com")
         mediaList.mediaDownloadList.addAll(mockGallery().take(25).toList())
         filterMediaInfo(mockSpec, mediaList).forEach {
             assertEquals(6, it.metadata.size)

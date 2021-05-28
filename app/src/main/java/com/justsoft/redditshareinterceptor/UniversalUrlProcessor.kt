@@ -6,17 +6,22 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
+import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.RequestHelper
 import com.justsoft.redditshareinterceptor.util.Stopwatch
+import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
+import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import java.io.File
+import java.io.FileOutputStream
 import java.io.OutputStream
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
     private val createUri: (MediaContentType, Int) -> Uri,
-    openOutputStream: (Uri) -> OutputStream
+    private val getFileByContent: (MediaContentType, Int) -> File,
+    private val openOutputStream: (Uri) -> OutputStream
 ) {
 
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
@@ -36,6 +41,12 @@ class UniversalUrlProcessor(
             val delta = stopwatch.stopAndGetTimeElapsed()
             Log.d(LOG_TAG, "Processing succeeded in $delta ms")
 
+            FirebaseAnalyticsHelper.getInstance().logEvent("url_processed") {
+                param("website_handler", selectUrlHandler(url)::class.java.simpleName)
+                param("media_type", info.mediaContentType.toString())
+                param("media_count", info.mediaDownloadList.count().toLong())
+                param("processing_time", delta)
+            }
             ProcessingResult.success(info, delta)
         } catch (e: Exception) {
             val delta = stopwatch.stopAndGetTimeElapsed()
@@ -51,11 +62,8 @@ class UniversalUrlProcessor(
         progressCallback: (ProcessingProgress) -> Unit
     ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
-        FirebaseAnalyticsHelper.getInstance().logEvent("select_url_handler") {
-            param("url", url)
-            param("handler_name", urlHandler.javaClass.simpleName)
-        }
         progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
+        Log.d(LOG_TAG, "Selected URL handler \"${urlHandler.javaClass.simpleName}\"")
 
         val mediaDownloadInfo = urlHandler.processUrl(url, requestHelper)
         Log.d(
@@ -84,7 +92,7 @@ class UniversalUrlProcessor(
         mediaDownloadInfo.mediaDownloadList.clear()
         mediaDownloadInfo.mediaDownloadList.addAll(filteredMediaList)
 
-        if (mediaDownloadInfo.mediaContentType != MediaContentType.TEXT) {
+        if (mediaDownloadInfo.mediaContentType != TEXT) {
             generateDestinationUris(mediaDownloadInfo)
             Log.d(LOG_TAG, "Generated destination Uris")
 
@@ -101,14 +109,44 @@ class UniversalUrlProcessor(
         if (filteredMediaList.isNotEmpty())
             Log.d(LOG_TAG, "Downloaded media files, count: ${filteredMediaList.count()}")
 
+        if (mediaDownloadInfo.mediaContentType == VIDEO_AUDIO) {
+            combineVideoAndAudio(mediaDownloadInfo)
+            progressCallback(
+                ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
+            )
+        }
+
+
         return mediaDownloadInfo
+    }
+
+    private fun combineVideoAndAudio(mediaDownloadInfo: MediaDownloadInfo) {
+        try {
+            val sw = Stopwatch()
+            sw.start()
+
+            Log.d(LOG_TAG, "Starting to combine video and audio")
+
+            combineVideoAndAudio(
+                getFileByContent(VIDEO, 0),
+                getFileByContent(AUDIO, 0),
+                openOutputStream(createUri(VIDEO_AUDIO, 0)) as FileOutputStream
+            )
+
+            Log.d(LOG_TAG, "Video and audio combined in ${sw.stopAndGetTimeElapsed()} ms.")
+        } catch (e: Exception) {
+            throw MediaVideoAudioCombineException(cause = e)
+        }
     }
 
     private fun generateDestinationUris(filteredDownloadInfo: MediaDownloadInfo) {
         try {
             filteredDownloadInfo.mediaDownloadList.forEach { media ->
                 media.metadata.uri = createUri(
-                    filteredDownloadInfo.mediaContentType,
+                    if (filteredDownloadInfo.mediaContentType == GALLERY)
+                        GALLERY
+                    else
+                        media.mediaType,
                     media.galleryIndex
                 )
             }
