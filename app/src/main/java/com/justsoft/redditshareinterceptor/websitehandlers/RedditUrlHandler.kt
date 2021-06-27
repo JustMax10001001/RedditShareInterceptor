@@ -27,6 +27,7 @@ class RedditUrlHandler : UrlHandler {
         RedGifsPostProcessor(),
         RedditGalleryPostProcessor(),
         StreamablePostProcessor(),
+        ImgurPostProcessor()
     )
 
     private val unknownPostProcessor = UnknownContentUrlPostProcessor()
@@ -61,10 +62,10 @@ class RedditUrlHandler : UrlHandler {
             LOG_TAG,
             "Got post content type $postContentType in ${stopwatch.restartAndGetTimeElapsed()} ms"
         )
-        FirebaseAnalyticsHelper.getInstance().logEvent("get_reddit_media_type") {
-            param("clean_url", cleanUrl)
+        FirebaseAnalyticsHelper.getAnalytics().logEvent("get_reddit_media_type") {
             param("processor_name", postProcessor.javaClass.simpleName)
             param("content_type", postContentType.toString())
+            param("extend_session", 1)
         }
 
         val unfilteredMedia = getUnfilteredMedia(
@@ -132,14 +133,14 @@ class RedditUrlHandler : UrlHandler {
         }
     }
 
-    private fun getPostApiUrl(url: String): String {
+    fun getPostApiUrl(url: String): String {
         val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/(\\w+)/)")
         val id = pattern.matcher(url).apply { this.find() }.group(2)!!
-        return "https://www.reddit.com/by_id/t3_$id/"
+        return "https://www.reddit.com/by_id/t3_$id/.json"
     }
 
     fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost {
-        val response = requestHelper.readHttpJsonResponse("$postUrl.json")
+        val response = requestHelper.readHttpJsonResponse(postUrl)
         return RedditPost(
             response.getJSONObject("data")
                 .getJSONArray("children")

@@ -9,7 +9,7 @@ class FirebaseAnalyticsHelper {
 
         var mFirebaseAnalytics: FirebaseAnalytics? = null
 
-        fun getInstance(context: Context): FirebaseAnalytics {
+        fun initializeInstance(context: Context) {
             if (mFirebaseAnalytics == null) {
                 synchronized(FirebaseAnalyticsHelper::class.java) {
                     if (mFirebaseAnalytics == null) {
@@ -17,12 +17,11 @@ class FirebaseAnalyticsHelper {
                     }
                 }
             }
-            return mFirebaseAnalytics!!
         }
 
-        fun getInstance(): FirebaseAnalytics {
+        fun getAnalytics(): FirebaseAnalytics {
             if (mFirebaseAnalytics == null)
-                throw IllegalStateException("Please, call FirebaseAnalyticsHelper.getInstance(context) first!")
+                throw IllegalStateException("Please, call FirebaseAnalyticsHelper.initializeInstance(Context) first!")
             return mFirebaseAnalytics!!
         }
     }

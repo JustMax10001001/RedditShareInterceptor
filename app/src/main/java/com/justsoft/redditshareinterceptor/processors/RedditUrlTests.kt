@@ -8,8 +8,9 @@ fun String.isIReddit(): Boolean =
 fun String.isIImgur(): Boolean =
     this.contains("i.imgur.com")
 
-fun String.hasGifExtension(): Boolean =
-    this.toLowerCase(Locale.ROOT).endsWith(".gif")
+fun String.hasGifExtension(): Boolean = this.toLowerCase(Locale.ROOT).trim().let { url ->
+    url.endsWith(".gif") || url.endsWith(".gifv")
+}
 
 fun String.isGallery(): Boolean =
     this.contains("reddit.com/gallery")
