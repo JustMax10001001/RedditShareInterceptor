@@ -6,6 +6,7 @@ import com.justsoft.redditshareinterceptor.util.request.RequestHelper
 import com.justsoft.redditshareinterceptor.util.request.TestRequestHelper
 import org.json.JSONObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotNull
 import org.junit.Test
 import org.mockito.ArgumentMatchers.any
 import org.mockito.ArgumentMatchers.anyString
@@ -178,5 +179,15 @@ class RedditUrlHandlerTest {
             .getJSONArray("children")
             .put(post)
         return arr.toString()
+    }
+
+    @Test
+    fun getPostApiUrl() {
+        val testUrl = "https://www.reddit.com/r/Unexpected/comments/o7qffu/thats_one_way_to_solve_your_problems/"
+        val redditUrlHandler = RedditUrlHandler()
+        val apiUrl = redditUrlHandler.getPostApiUrl(testUrl)
+
+        assertNotNull(apiUrl)
+        assertEquals(apiUrl, "https://www.reddit.com/by_id/t3_o7qffu/.json")
     }
 }

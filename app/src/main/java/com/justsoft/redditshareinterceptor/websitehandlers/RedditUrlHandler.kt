@@ -132,14 +132,14 @@ class RedditUrlHandler : UrlHandler {
         }
     }
 
-    private fun getPostApiUrl(url: String): String {
+    fun getPostApiUrl(url: String): String {
         val pattern = Pattern.compile("(https://www\\.reddit\\.com/r/\\w*/comments/(\\w+)/)")
         val id = pattern.matcher(url).apply { this.find() }.group(2)!!
-        return "https://www.reddit.com/by_id/t3_$id/"
+        return "https://www.reddit.com/by_id/t3_$id/.json"
     }
 
     fun downloadRedditPost(postUrl: String, requestHelper: RequestHelper): RedditPost {
-        val response = requestHelper.readHttpJsonResponse("$postUrl.json")
+        val response = requestHelper.readHttpJsonResponse(postUrl)
         return RedditPost(
             response.getJSONObject("data")
                 .getJSONArray("children")
