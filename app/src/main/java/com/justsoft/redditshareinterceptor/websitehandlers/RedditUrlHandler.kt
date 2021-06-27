@@ -27,6 +27,7 @@ class RedditUrlHandler : UrlHandler {
         RedGifsPostProcessor(),
         RedditGalleryPostProcessor(),
         StreamablePostProcessor(),
+        ImgurPostProcessor()
     )
 
     private val unknownPostProcessor = UnknownContentUrlPostProcessor()
