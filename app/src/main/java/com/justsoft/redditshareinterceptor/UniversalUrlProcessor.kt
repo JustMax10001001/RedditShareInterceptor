@@ -41,7 +41,7 @@ class UniversalUrlProcessor(
             val delta = stopwatch.stopAndGetTimeElapsed()
             Log.d(LOG_TAG, "Processing succeeded in $delta ms")
 
-            FirebaseAnalyticsHelper.getInstance().logEvent("url_processed") {
+            FirebaseAnalyticsHelper.getAnalytics().logEvent("url_processed") {
                 param("website_handler", selectUrlHandler(url)::class.java.simpleName)
                 param("media_type", info.mediaContentType.toString())
                 param("media_count", info.mediaDownloadList.count().toLong())

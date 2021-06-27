@@ -61,10 +61,10 @@ class RedditUrlHandler : UrlHandler {
             LOG_TAG,
             "Got post content type $postContentType in ${stopwatch.restartAndGetTimeElapsed()} ms"
         )
-        FirebaseAnalyticsHelper.getInstance().logEvent("get_reddit_media_type") {
-            param("clean_url", cleanUrl)
+        FirebaseAnalyticsHelper.getAnalytics().logEvent("get_reddit_media_type") {
             param("processor_name", postProcessor.javaClass.simpleName)
             param("content_type", postContentType.toString())
+            param("extend_session", 1)
         }
 
         val unfilteredMedia = getUnfilteredMedia(

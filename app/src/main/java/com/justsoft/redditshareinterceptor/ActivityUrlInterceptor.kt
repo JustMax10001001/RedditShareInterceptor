@@ -14,9 +14,7 @@ class ActivityUrlInterceptor : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        FirebaseApp.initializeApp(applicationContext)
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
-        FirebaseAnalyticsHelper.getInstance(this)
+        initializeFirebaseAnalytics()
 
         val startIntent = intent
 
@@ -67,6 +65,12 @@ class ActivityUrlInterceptor : AppCompatActivity() {
                 startService(serviceIntent)
             }
         }
+    }
+
+    private fun initializeFirebaseAnalytics() {
+        FirebaseApp.initializeApp(applicationContext)
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
+        FirebaseAnalyticsHelper.initializeInstance(this)
     }
 
     private fun constructServiceIntent(): Intent {
