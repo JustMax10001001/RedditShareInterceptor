@@ -1,6 +1,7 @@
 package com.justsoft.redditshareinterceptor.components
 
 import android.app.Application
+import android.content.Context
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
@@ -12,11 +13,17 @@ class RsiApplication: Application() {
         super.onCreate()
 
         initializeFirebaseAnalytics()
+
+        sApplicationContext = applicationContext
     }
 
     private fun initializeFirebaseAnalytics() {
         FirebaseApp.initializeApp(applicationContext)
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
         FirebaseAnalyticsHelper.initializeInstance(this)
+    }
+
+    companion object {
+        var sApplicationContext: Context? = null
     }
 }

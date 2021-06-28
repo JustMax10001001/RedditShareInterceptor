@@ -15,7 +15,6 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.DEFAULT_ALL
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
-import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.R
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver
@@ -34,11 +33,13 @@ import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.utils.request.VolleyRequestHelper
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
 
+@AndroidEntryPoint
 class UniversalProcessorForegroundService : Service() {
 
     private val mHandler = Handler(Looper.getMainLooper())
@@ -49,7 +50,7 @@ class UniversalProcessorForegroundService : Service() {
 
     private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
         UniversalUrlProcessor(
-            VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
+            VolleyRequestHelper(applicationContext),
             this::getUriForContentType,
             this::getInternalFileByContentType,
             this::openStreamForUri,

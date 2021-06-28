@@ -7,8 +7,11 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.justsoft.redditshareinterceptor.components.services.UniversalProcessorForegroundService
 import com.justsoft.redditshareinterceptor.utils.checkUrlString
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ActivityUrlInterceptor : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 

@@ -1,10 +1,15 @@
 package com.justsoft.redditshareinterceptor.utils.request
 
 import com.justsoft.redditshareinterceptor.utils.urlEncode
+import dagger.Binds
+import dagger.Module
+import dagger.hilt.InstallIn
+import dagger.hilt.components.SingletonComponent
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection
 import java.net.URL
+import javax.inject.Singleton
 
 interface RequestHelper {
 
@@ -38,4 +43,12 @@ interface RequestHelper {
         con.disconnect()
         return length
     }
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+internal abstract class RequestHelperModule {
+    @Binds
+    @Singleton
+    abstract fun bind(implementation: VolleyRequestHelper): RequestHelper
 }

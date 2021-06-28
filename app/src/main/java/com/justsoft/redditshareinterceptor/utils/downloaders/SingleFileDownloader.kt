@@ -1,27 +1,27 @@
 package com.justsoft.redditshareinterceptor.utils.downloaders
 
-import android.net.Uri
 import android.util.Log
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
+import com.justsoft.redditshareinterceptor.services.io.FileIoService
 import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
-import java.io.OutputStream
 import java.net.HttpURLConnection
 import java.net.URL
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
+import javax.inject.Inject
 
-class SingleFileDownloader(
+class SingleFileDownloader @Inject constructor(
     private val requestHelper: RequestHelper,
-    private val outputStreamCallback: (Uri) -> OutputStream,
+    private val fileIoService: FileIoService,
 ) {
 
     fun downloadFile(
         mediaObject: MediaDownloadObject,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
-        val outputStream = outputStreamCallback(mediaObject.metadata.uri)
+        val outputStream = fileIoService.openOutputStream(mediaObject.metadata.uri)
 
         val sourceConnection = URL(mediaObject.downloadUrl).openConnection() as HttpURLConnection
         val totalSizeFuture = getTotalSize(mediaObject)

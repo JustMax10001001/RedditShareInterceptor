@@ -3,6 +3,7 @@ package com.justsoft.redditshareinterceptor
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.components.RsiApplication
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
@@ -13,6 +14,10 @@ import com.justsoft.redditshareinterceptor.utils.combineVideoAndAudio
 import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -26,7 +31,13 @@ class UniversalUrlProcessor(
 
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
 
-    private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface UniversalUrlProcessorEntryPoint {
+        fun universalDownloader(): UniversalMediaDownloader
+    }
+
+    //private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -160,6 +171,11 @@ class UniversalUrlProcessor(
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
         return try {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                RsiApplication.sApplicationContext!!,
+                UniversalUrlProcessorEntryPoint::class.java
+            )
+            val downloader = entryPoint.universalDownloader()
             downloader.downloadMediaList(filteredMediaInfo, downloadProgressCallback)
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)

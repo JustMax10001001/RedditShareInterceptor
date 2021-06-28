@@ -25,7 +25,8 @@ class MultipleFileDownloader(
         runBlocking(Dispatchers.IO) {
             downloadObjects.forEach { mediaObject ->
                 launch {
-                    val downloader = SingleFileDownloader(requestHelper, outputStreamCallback)
+                    TODO("Use injected file downloaders")
+                    /*val downloader = SingleFileDownloader(requestHelper, outputStreamCallback)
 
                     downloader.downloadFile(mediaObject) {
                         totalProgress += it.overallProgress
@@ -38,7 +39,7 @@ class MultipleFileDownloader(
                             )
                             previousProgress = totalProgress
                         }
-                    }
+                    }*/
                 }
             }
         }
