@@ -1,6 +1,5 @@
 package com.justsoft.redditshareinterceptor.services.media
 
-import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import dagger.Binds
 import dagger.Module
@@ -10,7 +9,7 @@ import kotlinx.coroutines.flow.Flow
 import javax.inject.Singleton
 
 interface MediaDownloadService {
-    suspend fun downloadMedia(mediaList: List<MediaDownloadObject>): Flow<ProcessingProgress>
+    suspend fun downloadMedia(mediaList: List<MediaDownloadObject>): Flow<Double>
 }
 
 @Module

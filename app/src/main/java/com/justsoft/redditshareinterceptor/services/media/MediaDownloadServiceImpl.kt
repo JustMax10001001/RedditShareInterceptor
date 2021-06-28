@@ -1,11 +1,8 @@
 package com.justsoft.redditshareinterceptor.services.media
 
 import android.util.Log
-import com.justsoft.redditshareinterceptor.R
-import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
-import com.justsoft.redditshareinterceptor.model.send
 import com.justsoft.redditshareinterceptor.services.io.FileIoService
 import com.justsoft.redditshareinterceptor.utils.copyToStream
 import com.justsoft.redditshareinterceptor.utils.format
@@ -27,7 +24,7 @@ internal class MediaDownloadServiceImpl @Inject constructor(
     @ExperimentalCoroutinesApi
     override suspend fun downloadMedia(
         mediaList: List<MediaDownloadObject>
-    ): Flow<ProcessingProgress> = channelFlow {
+    ): Flow<Double> = channelFlow {
         withContext(Dispatchers.IO) {
             val mediaCount = mediaList.count()
             val progressArray = DoubleArray(mediaCount)
@@ -37,7 +34,7 @@ internal class MediaDownloadServiceImpl @Inject constructor(
                 val newProgress = (progressArray.sum() * 100 / mediaCount).roundToInt()
 
                 if (newProgress - oldProgress > 0) {
-                    send(R.string.processing_media_state_starting, oldProgress)
+                    send(oldProgress)
                     oldProgress = newProgress
                 }
             }

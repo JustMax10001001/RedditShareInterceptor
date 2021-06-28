@@ -24,9 +24,7 @@ suspend fun InputStream.copyToStream(
                 val buffer = ByteArray(bufferSize)
                 var bytesRead: Int
 
-                while (fromStream.read(buffer)
-                        .also { bytesRead = it } > 0
-                ) {
+                while (fromStream.read(buffer).also { bytesRead = it } > 0) {
                     toStream.write(buffer, 0, bytesRead)
 
                     emit(bytesRead.toLong())
