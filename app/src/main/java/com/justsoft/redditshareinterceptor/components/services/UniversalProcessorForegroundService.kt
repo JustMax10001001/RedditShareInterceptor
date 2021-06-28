@@ -2,7 +2,6 @@ package com.justsoft.redditshareinterceptor.components.services
 
 import android.app.*
 import android.content.Intent
-import android.net.Uri
 import android.os.Build.VERSION
 import android.os.Build.VERSION_CODES
 import android.os.Handler
@@ -14,7 +13,6 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.DEFAULT_ALL
 import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.FileProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.R
 import com.justsoft.redditshareinterceptor.UniversalUrlProcessor
@@ -32,32 +30,23 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
-import com.justsoft.redditshareinterceptor.utils.request.VolleyRequestHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.runBlocking
-import java.io.File
-import java.io.OutputStream
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class UniversalProcessorForegroundService : Service() {
 
     private val mHandler = Handler(Looper.getMainLooper())
-    private val mBackgroundExecutor =
-        Executors.newSingleThreadExecutor { runnable ->
-            Thread(runnable, "UUFSBackgroundThread")
-        }
-
-    private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
-        UniversalUrlProcessor(
-            VolleyRequestHelper(applicationContext),
-            this::getUriForContentType,
-            this::getInternalFileByContentType,
-            this::openStreamForUri,
-        )
+    private val mBackgroundExecutor = Executors.newSingleThreadExecutor { runnable ->
+        Thread(runnable, "UUFSBackgroundThread")
     }
+
+    @Inject
+    lateinit var mUniversalUrlProcessor: UniversalUrlProcessor
 
     // LIFECYCLE METHODS
 
@@ -195,7 +184,7 @@ class UniversalProcessorForegroundService : Service() {
                 }
                 else -> putExtra(
                     KEY_MEDIA_SINGLE_URI,
-                    getUriForContentType(processingResult.mediaInfo.mediaContentType, 0)
+                    mediaInfo.mediaDownloadList.single().metadata.uri
                 )
             }
         }
@@ -334,34 +323,6 @@ class UniversalProcessorForegroundService : Service() {
         mHandler.post(exec)
     }
 
-    private fun openStreamForUri(uri: Uri): OutputStream =
-        contentResolver.openOutputStream(uri)!!
-
-    private fun getUriForContentType(mediaContentType: MediaContentType, mediaIndex: Int): Uri =
-        getInternalFileUri(getFileNameForContentType(mediaContentType, mediaIndex))
-
-    private fun getInternalFileByContentType(
-        mediaContentType: MediaContentType,
-        index: Int = 0
-    ): File {
-        return File(filesDir, getFileNameForContentType(mediaContentType, index))
-    }
-
-    private fun getInternalFileUri(file: String): Uri {
-        return FileProvider.getUriForFile(
-            this,
-            getString(R.string.provider_name),
-            File(filesDir, file)
-        )
-    }
-
-    private fun getFileNameForContentType(
-        mediaContentType: MediaContentType,
-        index: Int = 0
-    ): String =
-        (contentTypeToFileNameMap[mediaContentType]
-            ?: error("No such key: $mediaContentType in Filename map")).format(index)
-
     private fun getMimeForContentType(mediaContentType: MediaContentType): String =
         contentTypeToMIME[mediaContentType] ?: error("No such key: $mediaContentType in MIME map")
 
@@ -378,15 +339,6 @@ class UniversalProcessorForegroundService : Service() {
 
         const val ACTION_PROCESS_URL =
             "com.justsoft.redditshareinterceptor.action.PROCESS_REDDIT_URL"
-
-        private val contentTypeToFileNameMap = mapOf(
-            GIF to "gif.mp4",
-            VIDEO to "video.mp4",
-            IMAGE to "image.jpg",
-            GALLERY to "image_%d.jpg",
-            AUDIO to "audio.mp4",
-            VIDEO_AUDIO to "video_w_audio.mp4"
-        )
 
         private val contentTypeToMIME = mapOf(
             GIF to "video/*",

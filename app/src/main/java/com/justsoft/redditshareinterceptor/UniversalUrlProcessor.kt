@@ -1,14 +1,14 @@
 package com.justsoft.redditshareinterceptor
 
-import android.net.Uri
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
-import com.justsoft.redditshareinterceptor.components.RsiApplication
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.emit
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
+import com.justsoft.redditshareinterceptor.providers.media.MediaPathProvider
+import com.justsoft.redditshareinterceptor.services.io.FileIoService
 import com.justsoft.redditshareinterceptor.services.media.MediaDownloadService
 import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.utils.Stopwatch
@@ -16,39 +16,21 @@ import com.justsoft.redditshareinterceptor.utils.combineVideoAndAudio
 import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
-import dagger.hilt.EntryPoint
-import dagger.hilt.InstallIn
-import dagger.hilt.android.EntryPointAccessors
-import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
-import java.io.File
 import java.io.FileOutputStream
-import java.io.OutputStream
+import javax.inject.Inject
 import kotlin.math.roundToInt
 
-class UniversalUrlProcessor(
+class UniversalUrlProcessor @Inject constructor(
     private val requestHelper: RequestHelper,
-    private val createUri: (MediaContentType, Int) -> Uri,
-    private val getFileByContent: (MediaContentType, Int) -> File,
-    private val openOutputStream: (Uri) -> OutputStream
+    private val mediaPathProvider: MediaPathProvider,
+    private val fileIoService: FileIoService,
+    private val downloadService: MediaDownloadService
 ) {
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
-
-    private val entryPoint by lazy {
-        EntryPointAccessors.fromApplication(
-            RsiApplication.sApplicationContext!!,
-            UniversalUrlProcessorEntryPoint::class.java
-        )
-    }
-
-    @EntryPoint
-    @InstallIn(SingletonComponent::class)
-    interface UniversalUrlProcessorEntryPoint {
-        fun downloadService(): MediaDownloadService
-    }
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -145,10 +127,12 @@ class UniversalUrlProcessor(
 
             Log.d(LOG_TAG, "Starting to combine video and audio")
 
+            val combinedUri = mediaPathProvider.getUriForMediaType(VIDEO_AUDIO)
+
             combineVideoAndAudio(
-                getFileByContent(VIDEO, 0),
-                getFileByContent(AUDIO, 0),
-                openOutputStream(createUri(VIDEO_AUDIO, 0)) as FileOutputStream
+                mediaPathProvider.getFileForMediaType(VIDEO),
+                mediaPathProvider.getFileForMediaType(AUDIO),
+                fileIoService.openOutputStream(combinedUri) as FileOutputStream
             )
 
             Log.d(LOG_TAG, "Video and audio combined in ${sw.stopAndGetTimeElapsed()} ms.")
@@ -159,12 +143,13 @@ class UniversalUrlProcessor(
 
     private fun generateDestinationUris(filteredDownloadInfo: MediaDownloadInfo) {
         try {
+            val isGallery = filteredDownloadInfo.mediaContentType == GALLERY
             filteredDownloadInfo.mediaDownloadList.forEach { media ->
-                media.metadata.uri = createUri(
-                    if (filteredDownloadInfo.mediaContentType == GALLERY)
-                        GALLERY
-                    else
-                        media.mediaType,
+                media.metadata.uri = mediaPathProvider.getUriForMediaType(
+                    when {
+                        isGallery -> GALLERY
+                        else -> media.mediaType
+                    },
                     media.galleryIndex
                 )
             }
@@ -177,8 +162,7 @@ class UniversalUrlProcessor(
         filteredMediaInfo: MediaDownloadInfo
     ): Flow<Double> {
         try {
-            val downloader = entryPoint.downloadService()
-            return downloader.downloadMedia(filteredMediaInfo.mediaDownloadList)
+            return downloadService.downloadMedia(filteredMediaInfo.mediaDownloadList)
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }
