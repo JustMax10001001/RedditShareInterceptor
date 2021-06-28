@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.utils
 
 import org.mp4parser.muxer.FileRandomAccessSourceImpl
 import org.mp4parser.muxer.Movie

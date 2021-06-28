@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.utils
 
 import android.content.Context
 import com.google.firebase.analytics.FirebaseAnalytics

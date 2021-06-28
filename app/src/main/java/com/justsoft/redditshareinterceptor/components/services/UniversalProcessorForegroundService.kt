@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor
+package com.justsoft.redditshareinterceptor.components.services
 
 import android.app.*
 import android.content.Intent
@@ -15,27 +15,31 @@ import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.DEFAULT_ALL
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
-import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_SINGLE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_CAPTION
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_FLAG
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
+import com.justsoft.redditshareinterceptor.R
+import com.justsoft.redditshareinterceptor.UniversalUrlProcessor
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_SINGLE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_CAPTION
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_FLAG
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
-import com.justsoft.redditshareinterceptor.util.request.VolleyRequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.VolleyRequestHelper
+import dagger.hilt.android.AndroidEntryPoint
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
 import java.util.stream.Collectors
 
+@AndroidEntryPoint
 class UniversalProcessorForegroundService : Service() {
 
     private val mHandler = Handler(Looper.getMainLooper())
@@ -46,7 +50,7 @@ class UniversalProcessorForegroundService : Service() {
 
     private val mUniversalUrlProcessor: UniversalUrlProcessor by lazy {
         UniversalUrlProcessor(
-            VolleyRequestHelper(Volley.newRequestQueue(applicationContext)),
+            VolleyRequestHelper(applicationContext),
             this::getUriForContentType,
             this::getInternalFileByContentType,
             this::openStreamForUri,
@@ -120,7 +124,10 @@ class UniversalProcessorForegroundService : Service() {
         Log.d(LOG_TAG, "Processing succeeded")
         executeOnMainThread {
             updateDownloadNotification(100, R.string.processing_media_state_processed)
+
             val broadcastIntent = prepareBroadcastReceiverIntent(processingResult)
+            cancelNotification(DOWNLOADING_NOTIFICATION_ID)
+
             if (processingResult.processingTime <= 5000) {
                 Log.d(LOG_TAG, "Processing completed in under 5 seconds, using sendBroadcast()")
                 sendBroadcast(broadcastIntent)
@@ -159,7 +166,7 @@ class UniversalProcessorForegroundService : Service() {
     // INTENT CREATION
 
     private fun prepareBroadcastReceiverIntent(processingResult: ProcessingResult): Intent {
-        return Intent(this, SendNotificationBroadcastReceiver::class.java).apply {
+        return Intent(this, NotificationBroadcastReceiver::class.java).apply {
             action = ACTION_SHARE_MEDIA
 
             val mediaInfo = processingResult.mediaInfo

@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.utils
 
 import android.util.Patterns
 import java.net.URLDecoder

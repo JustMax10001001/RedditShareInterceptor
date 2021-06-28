@@ -3,16 +3,24 @@ package com.justsoft.redditshareinterceptor
 import android.net.Uri
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
+import com.justsoft.redditshareinterceptor.components.RsiApplication
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.Stopwatch
-import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.services.media.MediaDownloadService
+import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
+import com.justsoft.redditshareinterceptor.utils.Stopwatch
+import com.justsoft.redditshareinterceptor.utils.combineVideoAndAudio
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -26,7 +34,11 @@ class UniversalUrlProcessor(
 
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
 
-    private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface UniversalUrlProcessorEntryPoint {
+        fun downloadService(): MediaDownloadService
+    }
 
     private val websiteHandlers = listOf(
         RedditUrlHandler()
@@ -96,11 +108,11 @@ class UniversalUrlProcessor(
             generateDestinationUris(mediaDownloadInfo)
             Log.d(LOG_TAG, "Generated destination Uris")
 
-            downloadMedia(mediaDownloadInfo) { progress: ProcessingProgress ->
+            downloadMedia(mediaDownloadInfo) { progress ->
                 progressCallback(
                     ProcessingProgress(
                         R.string.processing_media_state_downloading_media,
-                        40 + (0.6 * progress.overallProgress).toInt()
+                        40 + (0.6 * progress).toInt()
                     )
                 )
             }
@@ -122,8 +134,7 @@ class UniversalUrlProcessor(
 
     private fun combineVideoAndAudio(mediaDownloadInfo: MediaDownloadInfo) {
         try {
-            val sw = Stopwatch()
-            sw.start()
+            val sw = Stopwatch().apply { start() }
 
             Log.d(LOG_TAG, "Starting to combine video and audio")
 
@@ -157,10 +168,18 @@ class UniversalUrlProcessor(
 
     private fun downloadMedia(
         filteredMediaInfo: MediaDownloadInfo,
-        downloadProgressCallback: (ProcessingProgress) -> Unit
+        downloadProgressCallback: (Double) -> Unit
     ) {
-        return try {
-            downloader.downloadMediaList(filteredMediaInfo, downloadProgressCallback)
+        try {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                RsiApplication.sApplicationContext!!,
+                UniversalUrlProcessorEntryPoint::class.java
+            )
+            val downloader = entryPoint.downloadService()
+            runBlocking {
+                downloader.downloadMedia(filteredMediaInfo.mediaDownloadList)
+                    .collect { downloadProgressCallback(it) }
+            }
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }

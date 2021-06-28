@@ -5,7 +5,7 @@ import android.util.Log
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import java.util.regex.Pattern
 
 class StreamablePostProcessor : PostProcessor {

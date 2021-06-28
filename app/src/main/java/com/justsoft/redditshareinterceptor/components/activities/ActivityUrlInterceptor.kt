@@ -1,20 +1,19 @@
-package com.justsoft.redditshareinterceptor
+package com.justsoft.redditshareinterceptor.components.activities
 
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.google.firebase.FirebaseApp
-import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.checkUrlString
+import com.justsoft.redditshareinterceptor.components.services.UniversalProcessorForegroundService
+import com.justsoft.redditshareinterceptor.utils.checkUrlString
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class ActivityUrlInterceptor : AppCompatActivity() {
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        initializeFirebaseAnalytics()
 
         val startIntent = intent
 
@@ -65,12 +64,6 @@ class ActivityUrlInterceptor : AppCompatActivity() {
                 startService(serviceIntent)
             }
         }
-    }
-
-    private fun initializeFirebaseAnalytics() {
-        FirebaseApp.initializeApp(applicationContext)
-        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
-        FirebaseAnalyticsHelper.initializeInstance(this)
     }
 
     private fun constructServiceIntent(): Intent {

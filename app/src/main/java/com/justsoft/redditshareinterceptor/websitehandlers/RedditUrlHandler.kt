@@ -11,9 +11,9 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.processors.*
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.Stopwatch
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
+import com.justsoft.redditshareinterceptor.utils.Stopwatch
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import java.util.regex.Pattern
 
 class RedditUrlHandler : UrlHandler {
