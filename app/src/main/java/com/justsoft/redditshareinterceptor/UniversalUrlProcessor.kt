@@ -6,6 +6,7 @@ import com.google.firebase.analytics.ktx.logEvent
 import com.justsoft.redditshareinterceptor.components.RsiApplication
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
+import com.justsoft.redditshareinterceptor.model.emit
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.services.media.MediaDownloadService
@@ -19,11 +20,14 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.FlowCollector
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.flow.flow
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
+import kotlin.math.roundToInt
 
 class UniversalUrlProcessor(
     private val requestHelper: RequestHelper,
@@ -31,8 +35,14 @@ class UniversalUrlProcessor(
     private val getFileByContent: (MediaContentType, Int) -> File,
     private val openOutputStream: (Uri) -> OutputStream
 ) {
-
     private var onProcessingFinished: (ProcessingResult) -> Unit = { }
+
+    private val entryPoint by lazy {
+        EntryPointAccessors.fromApplication(
+            RsiApplication.sApplicationContext!!,
+            UniversalUrlProcessorEntryPoint::class.java
+        )
+    }
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
@@ -44,12 +54,13 @@ class UniversalUrlProcessor(
         RedditUrlHandler()
     )
 
-    fun handleUrl(url: String, progressCallback: (ProcessingProgress) -> Unit) {
-        val stopwatch = Stopwatch()
+    suspend fun handleUrl(
+        url: String
+    ): Flow<ProcessingProgress> = flow {
         Log.d(LOG_TAG, "Starting url processing")
-        stopwatch.start()
+        val stopwatch = Stopwatch().apply { start() }
         val processingResult = try {
-            val info = startUrlProcessing(url, progressCallback)
+            val info = startUrlProcessing(url, this)
             val delta = stopwatch.stopAndGetTimeElapsed()
             Log.d(LOG_TAG, "Processing succeeded in $delta ms")
 
@@ -59,6 +70,7 @@ class UniversalUrlProcessor(
                 param("media_count", info.mediaDownloadList.count().toLong())
                 param("processing_time", delta)
             }
+
             ProcessingResult.success(info, delta)
         } catch (e: Exception) {
             val delta = stopwatch.stopAndGetTimeElapsed()
@@ -69,12 +81,12 @@ class UniversalUrlProcessor(
         onProcessingFinished(processingResult)
     }
 
-    private fun startUrlProcessing(
+    private suspend fun startUrlProcessing(
         url: String,
-        progressCallback: (ProcessingProgress) -> Unit
+        flowCollector: FlowCollector<ProcessingProgress>
     ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
-        progressCallback(ProcessingProgress(R.string.processing_media_state_found_url_handler, 5))
+        flowCollector.emit(R.string.processing_media_state_found_url_handler, 5)
         Log.d(LOG_TAG, "Selected URL handler \"${urlHandler.javaClass.simpleName}\"")
 
         val mediaDownloadInfo = urlHandler.processUrl(url, requestHelper)
@@ -82,11 +94,9 @@ class UniversalUrlProcessor(
             LOG_TAG,
             "Got unfiltered media, count: ${mediaDownloadInfo.mediaDownloadList.count()}"
         )
-        progressCallback(
-            ProcessingProgress(
-                R.string.processing_media_state_loaded_media_variants,
-                35
-            )
+        flowCollector.emit(
+            R.string.processing_media_state_loaded_media_variants,
+            35
         )
 
         val filteredMediaList = filterMedia(
@@ -95,11 +105,9 @@ class UniversalUrlProcessor(
             MediaQualitySpec.PRESET_HIGH
         )
         Log.d(LOG_TAG, "Filtered media, count: ${filteredMediaList.count()}")
-        progressCallback(
-            ProcessingProgress(
-                R.string.processing_media_state_filtered_media_variants,
-                40
-            )
+        flowCollector.emit(
+            R.string.processing_media_state_filtered_media_variants,
+            40
         )
         mediaDownloadInfo.mediaDownloadList.clear()
         mediaDownloadInfo.mediaDownloadList.addAll(filteredMediaList)
@@ -108,12 +116,10 @@ class UniversalUrlProcessor(
             generateDestinationUris(mediaDownloadInfo)
             Log.d(LOG_TAG, "Generated destination Uris")
 
-            downloadMedia(mediaDownloadInfo) { progress ->
-                progressCallback(
-                    ProcessingProgress(
-                        R.string.processing_media_state_downloading_media,
-                        40 + (0.6 * progress).toInt()
-                    )
+            downloadMedia(mediaDownloadInfo).collect { downloadProgress ->
+                flowCollector.emit(
+                    R.string.processing_media_state_downloading_media,
+                    40 + (0.6 * downloadProgress).roundToInt()
                 )
             }
         }
@@ -123,8 +129,9 @@ class UniversalUrlProcessor(
 
         if (mediaDownloadInfo.mediaContentType == VIDEO_AUDIO) {
             combineVideoAndAudio(mediaDownloadInfo)
-            progressCallback(
-                ProcessingProgress(R.string.processing_media_state_downloading_media, 100)
+            flowCollector.emit(
+                R.string.processing_media_state_downloading_media,
+                100
             )
         }
 
@@ -166,20 +173,12 @@ class UniversalUrlProcessor(
         }
     }
 
-    private fun downloadMedia(
-        filteredMediaInfo: MediaDownloadInfo,
-        downloadProgressCallback: (Double) -> Unit
-    ) {
+    private suspend fun downloadMedia(
+        filteredMediaInfo: MediaDownloadInfo
+    ): Flow<Double> {
         try {
-            val entryPoint = EntryPointAccessors.fromApplication(
-                RsiApplication.sApplicationContext!!,
-                UniversalUrlProcessorEntryPoint::class.java
-            )
             val downloader = entryPoint.downloadService()
-            runBlocking {
-                downloader.downloadMedia(filteredMediaInfo.mediaDownloadList)
-                    .collect { downloadProgressCallback(it) }
-            }
+            return downloader.downloadMedia(filteredMediaInfo.mediaDownloadList)
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }

@@ -10,11 +10,11 @@ data class ProcessingProgress(
     val overallProgress: Int
 )
 
-suspend fun FlowCollector<ProcessingProgress>.emit(stateId: Int, progress: Int) {
+suspend fun FlowCollector<ProcessingProgress>.emit(@StringRes stateId: Int, progress: Int) {
     emit(ProcessingProgress(stateId, progress))
 }
 
 @ExperimentalCoroutinesApi
-suspend fun ProducerScope<ProcessingProgress>.send(stateId: Int, progress: Int) {
+suspend fun ProducerScope<ProcessingProgress>.send(@StringRes stateId: Int, progress: Int) {
     send(ProcessingProgress(stateId, progress))
 }

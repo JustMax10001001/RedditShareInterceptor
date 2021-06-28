@@ -34,6 +34,8 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
 import com.justsoft.redditshareinterceptor.utils.request.VolleyRequestHelper
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors
@@ -83,8 +85,10 @@ class UniversalProcessorForegroundService : Service() {
             startForeground(DOWNLOADING_NOTIFICATION_ID, buildProgressNotification())
             mBackgroundExecutor.submit {
                 val url = intent.extras?.get(Intent.EXTRA_TEXT).toString()
-                FirebaseCrashlytics.getInstance().setCustomKey("url", url)
-                mUniversalUrlProcessor.handleUrl(url, this::onProgress)
+
+                runBlocking {
+                    mUniversalUrlProcessor.handleUrl(url).collect(::onProgress)
+                }
             }
         }
 
@@ -149,6 +153,7 @@ class UniversalProcessorForegroundService : Service() {
     private fun onProgress(processingProgress: ProcessingProgress) {
         if (lastStatusId == processingProgress.statusTextResourceId
             && System.currentTimeMillis() - lastProgressUpdate < 250
+            && processingProgress.overallProgress != 100
         )
             return
         lastProgressUpdate = System.currentTimeMillis()
