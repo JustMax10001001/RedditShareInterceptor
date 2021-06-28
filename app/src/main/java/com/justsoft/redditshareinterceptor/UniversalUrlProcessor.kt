@@ -8,6 +8,7 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
+import com.justsoft.redditshareinterceptor.services.media.MediaDownloadService
 import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
 import com.justsoft.redditshareinterceptor.utils.Stopwatch
 import com.justsoft.redditshareinterceptor.utils.combineVideoAndAudio
@@ -18,6 +19,8 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStream
@@ -34,7 +37,7 @@ class UniversalUrlProcessor(
     @EntryPoint
     @InstallIn(SingletonComponent::class)
     interface UniversalUrlProcessorEntryPoint {
-        fun universalDownloader(): UniversalMediaDownloader
+        fun downloader(): MediaDownloadService
     }
 
     //private val downloader = UniversalMediaDownloader(requestHelper, openOutputStream)
@@ -170,13 +173,16 @@ class UniversalUrlProcessor(
         filteredMediaInfo: MediaDownloadInfo,
         downloadProgressCallback: (ProcessingProgress) -> Unit
     ) {
-        return try {
+        try {
             val entryPoint = EntryPointAccessors.fromApplication(
                 RsiApplication.sApplicationContext!!,
                 UniversalUrlProcessorEntryPoint::class.java
             )
-            val downloader = entryPoint.universalDownloader()
-            downloader.downloadMediaList(filteredMediaInfo, downloadProgressCallback)
+            val downloader = entryPoint.downloader()
+            runBlocking {
+                downloader.downloadMedia(filteredMediaInfo.mediaDownloadList)
+                    .collect { downloadProgressCallback(it) }
+            }
         } catch (e: Exception) {
             throw MediaDownloadException(cause = e)
         }

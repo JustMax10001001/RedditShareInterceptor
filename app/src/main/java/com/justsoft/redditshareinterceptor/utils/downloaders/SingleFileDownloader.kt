@@ -3,7 +3,6 @@ package com.justsoft.redditshareinterceptor.utils.downloaders
 import android.util.Log
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
 import com.justsoft.redditshareinterceptor.services.io.FileIoService
 import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import java.net.HttpURLConnection
@@ -74,10 +73,10 @@ class SingleFileDownloader @Inject constructor(
 
     private fun getTotalSize(mediaObject: MediaDownloadObject): Future<Long> {
         return additionalRequestExecutor.submit<Long> {
-            if (mediaObject.metadata.hasProperty(MediaMetadata.KEY_SIZE_BYTES))
-                mediaObject.metadata.size
-            else
-                requestHelper.getContentLength(mediaObject.downloadUrl)
+            //if (mediaObject.metadata.hasProperty(MediaMetadata.KEY_SIZE_BYTES))
+            mediaObject.metadata.size
+            //else
+            //    requestHelper.getContentLength(mediaObject.downloadUrl)
         }
     }
 
