@@ -14,7 +14,7 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:name=".components.RsiApplication">
-        <receiver android:name=".SendNotificationBroadcastReceiver" />
+        <receiver android:name=".components.broadcast_receivers.NotificationBroadcastReceiver" />
 
         <service
             android:name=".components.services.UniversalProcessorForegroundService"

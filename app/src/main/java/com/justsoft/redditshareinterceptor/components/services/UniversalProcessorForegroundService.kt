@@ -17,17 +17,17 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.justsoft.redditshareinterceptor.R
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_SINGLE_MEDIA
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_CAPTION
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_FLAG
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
-import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
 import com.justsoft.redditshareinterceptor.UniversalUrlProcessor
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.FLAG_SINGLE_MEDIA
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_CAPTION
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_FLAG
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
+import com.justsoft.redditshareinterceptor.components.broadcast_receivers.NotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
@@ -124,7 +124,10 @@ class UniversalProcessorForegroundService : Service() {
         Log.d(LOG_TAG, "Processing succeeded")
         executeOnMainThread {
             updateDownloadNotification(100, R.string.processing_media_state_processed)
+
             val broadcastIntent = prepareBroadcastReceiverIntent(processingResult)
+            cancelNotification(DOWNLOADING_NOTIFICATION_ID)
+
             if (processingResult.processingTime <= 5000) {
                 Log.d(LOG_TAG, "Processing completed in under 5 seconds, using sendBroadcast()")
                 sendBroadcast(broadcastIntent)
@@ -163,7 +166,7 @@ class UniversalProcessorForegroundService : Service() {
     // INTENT CREATION
 
     private fun prepareBroadcastReceiverIntent(processingResult: ProcessingResult): Intent {
-        return Intent(this, SendNotificationBroadcastReceiver::class.java).apply {
+        return Intent(this, NotificationBroadcastReceiver::class.java).apply {
             action = ACTION_SHARE_MEDIA
 
             val mediaInfo = processingResult.mediaInfo

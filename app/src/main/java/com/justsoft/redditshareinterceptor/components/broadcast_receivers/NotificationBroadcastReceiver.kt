@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor
+package com.justsoft.redditshareinterceptor.components.broadcast_receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -8,7 +8,7 @@ import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import com.justsoft.redditshareinterceptor.components.services.UniversalProcessorForegroundService
 
-class SendNotificationBroadcastReceiver : BroadcastReceiver() {
+class NotificationBroadcastReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context?, intent: Intent?) {
         context ?: throw IllegalArgumentException("Context can not be null")
