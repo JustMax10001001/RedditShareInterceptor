@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
+import com.justsoft.redditshareinterceptor.components.services.UniversalProcessorForegroundService
 
 class SendNotificationBroadcastReceiver : BroadcastReceiver() {
 

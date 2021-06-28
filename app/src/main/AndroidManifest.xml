@@ -12,15 +12,16 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
+        android:theme="@style/AppTheme"
+        android:name=".components.RsiApplication">
         <receiver android:name=".SendNotificationBroadcastReceiver" />
 
         <service
-            android:name=".UniversalProcessorForegroundService"
+            android:name=".components.services.UniversalProcessorForegroundService"
             android:exported="false" />
 
         <activity
-            android:name=".ActivityUrlInterceptor"
+            android:name=".components.activities.ActivityUrlInterceptor"
             android:excludeFromRecents="true"
             android:label="@string/interceptor_label"
             android:theme="@style/Theme.AppCompat.Translucent">

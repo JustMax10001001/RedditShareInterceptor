@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor
+package com.justsoft.redditshareinterceptor.components.services
 
 import android.app.*
 import android.content.Intent
@@ -17,6 +17,8 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.FileProvider
 import com.android.volley.toolbox.Volley
 import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.justsoft.redditshareinterceptor.R
+import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.ACTION_SHARE_MEDIA
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_MULTIPLE_MEDIA
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.FLAG_NO_MEDIA
@@ -26,6 +28,7 @@ import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Com
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_SINGLE_URI
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MEDIA_URI_LIST
 import com.justsoft.redditshareinterceptor.SendNotificationBroadcastReceiver.Companion.KEY_MIME_TYPE
+import com.justsoft.redditshareinterceptor.UniversalUrlProcessor
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
