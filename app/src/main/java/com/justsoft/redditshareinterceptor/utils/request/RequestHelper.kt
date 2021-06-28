@@ -1,6 +1,6 @@
-package com.justsoft.redditshareinterceptor.util.request
+package com.justsoft.redditshareinterceptor.utils.request
 
-import com.justsoft.redditshareinterceptor.util.urlEncode
+import com.justsoft.redditshareinterceptor.utils.urlEncode
 import org.json.JSONObject
 import java.io.OutputStreamWriter
 import java.net.HttpURLConnection

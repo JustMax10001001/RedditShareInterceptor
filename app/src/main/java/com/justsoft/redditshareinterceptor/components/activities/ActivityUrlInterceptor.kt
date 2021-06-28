@@ -6,7 +6,7 @@ import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.justsoft.redditshareinterceptor.components.services.UniversalProcessorForegroundService
-import com.justsoft.redditshareinterceptor.util.checkUrlString
+import com.justsoft.redditshareinterceptor.utils.checkUrlString
 
 class ActivityUrlInterceptor : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

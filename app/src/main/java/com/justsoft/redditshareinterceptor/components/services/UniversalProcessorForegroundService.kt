@@ -33,7 +33,7 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
-import com.justsoft.redditshareinterceptor.util.request.VolleyRequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.VolleyRequestHelper
 import java.io.File
 import java.io.OutputStream
 import java.util.concurrent.Executors

@@ -5,7 +5,7 @@ import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
 import com.justsoft.redditshareinterceptor.model.media.metadata.MediaMetadata
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 
 class RedditImageGifPostProcessor : PostProcessor {
     override fun isProcessorSuitableForPost(redditPost: RedditPost): Boolean {

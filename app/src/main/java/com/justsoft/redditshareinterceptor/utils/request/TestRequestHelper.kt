@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util.request
+package com.justsoft.redditshareinterceptor.utils.request
 
 import org.json.JSONObject
 import java.io.BufferedReader
@@ -21,7 +21,7 @@ class TestRequestHelper : RequestHelper {
         val con: HttpURLConnection = URL(requestUrl).openConnection() as HttpURLConnection
         con.requestMethod = "GET"
         con.setRequestProperty("Content-Type", "application/x-www-form-urlencoded")
-        con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)");
+        con.setRequestProperty("User-Agent", "Mozilla/4.0 (compatible; MSIE 6.0; Windows NT 5.0)")
 
         if (params.isNotEmpty()) {
             con.doOutput = true

@@ -7,10 +7,10 @@ import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
-import com.justsoft.redditshareinterceptor.util.Stopwatch
-import com.justsoft.redditshareinterceptor.util.combineVideoAndAudio
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
+import com.justsoft.redditshareinterceptor.utils.Stopwatch
+import com.justsoft.redditshareinterceptor.utils.combineVideoAndAudio
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import com.justsoft.redditshareinterceptor.websitehandlers.RedditUrlHandler
 import com.justsoft.redditshareinterceptor.websitehandlers.UrlHandler
 import java.io.File

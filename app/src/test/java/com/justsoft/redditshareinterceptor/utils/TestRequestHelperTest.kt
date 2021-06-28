@@ -1,6 +1,6 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.utils
 
-import com.justsoft.redditshareinterceptor.util.request.TestRequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.TestRequestHelper
 import org.junit.Assert.*
 import org.junit.Before
 import org.junit.Ignore

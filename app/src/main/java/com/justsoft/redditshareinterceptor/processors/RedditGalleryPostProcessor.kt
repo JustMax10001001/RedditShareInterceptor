@@ -6,8 +6,8 @@ import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.GALLERY
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.IMAGE
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
-import com.justsoft.redditshareinterceptor.util.urlDecode
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.urlDecode
 import org.json.JSONObject
 
 class RedditGalleryPostProcessor : PostProcessor {

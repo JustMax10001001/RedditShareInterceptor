@@ -3,7 +3,7 @@ package com.justsoft.redditshareinterceptor.components
 import android.app.Application
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
-import com.justsoft.redditshareinterceptor.util.FirebaseAnalyticsHelper
+import com.justsoft.redditshareinterceptor.utils.FirebaseAnalyticsHelper
 import dagger.hilt.android.HiltAndroidApp
 
 @HiltAndroidApp

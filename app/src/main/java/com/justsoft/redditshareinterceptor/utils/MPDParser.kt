@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.util
+package com.justsoft.redditshareinterceptor.utils
 
 import android.util.Xml
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
@@ -24,7 +24,7 @@ class MPDParser(
     lateinit var contentType: MediaContentType
         private set
 
-    public fun parse(inputStream: InputStream): List<MediaDownloadObject> {
+    fun parse(inputStream: InputStream): List<MediaDownloadObject> {
         inputStream.use {
             val parser = Xml.newPullParser().apply {
                 setFeature(XmlPullParser.FEATURE_PROCESS_NAMESPACES, false)

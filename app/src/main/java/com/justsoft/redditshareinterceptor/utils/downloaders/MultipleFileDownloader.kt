@@ -1,9 +1,9 @@
-package com.justsoft.redditshareinterceptor.downloaders
+package com.justsoft.redditshareinterceptor.utils.downloaders
 
 import android.net.Uri
 import com.justsoft.redditshareinterceptor.model.ProcessingProgress
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking

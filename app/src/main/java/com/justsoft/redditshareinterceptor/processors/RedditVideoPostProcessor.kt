@@ -4,8 +4,8 @@ import android.os.Bundle
 import com.justsoft.redditshareinterceptor.model.RedditPost
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType
 import com.justsoft.redditshareinterceptor.model.media.MediaDownloadObject
-import com.justsoft.redditshareinterceptor.util.MPDParser
-import com.justsoft.redditshareinterceptor.util.request.RequestHelper
+import com.justsoft.redditshareinterceptor.utils.MPDParser
+import com.justsoft.redditshareinterceptor.utils.request.RequestHelper
 import java.net.URL
 import java.util.regex.Pattern
 
