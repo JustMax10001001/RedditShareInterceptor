@@ -67,7 +67,7 @@ class RedditPostHandlerIntegrationTest {
             { _, _ -> targetFileUri },
             this::openStreamForUri
         )
-        postHandler.handleUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/") { }
+        postHandler.handleUrl("https://www.reddit.com/r/okbuddyretard/comments/io5m2n/_/")
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -87,7 +87,7 @@ class RedditPostHandlerIntegrationTest {
             this::openStreamForUri
         )
 
-        postHandler.handleUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/") { }
+        postHandler.handleUrl("https://www.reddit.com/r/techsupportgore/comments/ilrwy8/gaming_laptop_overheating_very_much_work_in/")
 
         assert(targetFile.exists())
         assert(targetFile.length() > 0)
@@ -112,7 +112,7 @@ class RedditPostHandlerIntegrationTest {
                 targetFileUris[index]
             }, { openStreamForUri(it) })
 
-        postHandler.handleUrl("https://www.reddit.com/r/announcements/comments/hrrh23/") { }
+        postHandler.handleUrl("https://www.reddit.com/r/announcements/comments/hrrh23/")
 
         for (file in targetFiles) {
             assert(file.exists())
