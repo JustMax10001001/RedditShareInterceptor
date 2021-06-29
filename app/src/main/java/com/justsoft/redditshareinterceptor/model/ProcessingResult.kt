@@ -1,7 +1,5 @@
 package com.justsoft.redditshareinterceptor.model
 
-import com.justsoft.redditshareinterceptor.model.media.MediaDownloadInfo
-
 class ProcessingResult private constructor(
     val processingTime: Long,
     val processingSuccessful: Boolean
@@ -10,7 +8,7 @@ class ProcessingResult private constructor(
     lateinit var cause: Throwable
         private set
 
-    lateinit var mediaInfo: MediaDownloadInfo
+    lateinit var mediaPost: MediaPost
         private set
 
     companion object {
@@ -19,9 +17,9 @@ class ProcessingResult private constructor(
                 this.cause = cause
             }
 
-        fun success(mediaInfo: MediaDownloadInfo, processingTime: Long): ProcessingResult =
+        fun success(mediaPost: MediaPost, processingTime: Long): ProcessingResult =
             ProcessingResult(processingTime, true).apply {
-                this.mediaInfo = mediaInfo
+                this.mediaPost = mediaPost
             }
     }
 }

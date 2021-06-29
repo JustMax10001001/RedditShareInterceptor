@@ -6,9 +6,5 @@ class MediaDownloadInfo(
     val requestUrl: String,
     srcMediaObjectList: List<MediaDownloadObject> = emptyList(),
 ) {
-    val mediaDownloadList: MutableList<MediaDownloadObject> = mutableListOf()
-
-    init {
-        mediaDownloadList.addAll(srcMediaObjectList)
-    }
+    val mediaDownloadList: MutableList<MediaDownloadObject> = srcMediaObjectList.toMutableList()
 }
