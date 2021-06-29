@@ -65,17 +65,17 @@ class UniversalProcessorForegroundService : Service() {
         Log.d(LOG_TAG, "onCreate()")
 
         mUniversalUrlProcessor.finished { result ->
-            if (result.processingSuccessful)
-                onResult(result)
-            else
-                onError(result.cause)
+            when {
+                result.processingSuccessful -> onResult(result)
+                else -> onError(result.cause)
+            }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(LOG_TAG, "onStartCommand()")
 
-        intent ?: throw IllegalArgumentException("intent is null")
+        intent ?: error("intent is null")
 
         if (intent.action == ACTION_PROCESS_URL) {
             mDownloadProgressNotificationManager.attachServiceToNotification(this)
