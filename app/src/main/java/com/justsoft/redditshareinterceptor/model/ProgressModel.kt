@@ -5,16 +5,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.channels.ProducerScope
 import kotlinx.coroutines.flow.FlowCollector
 
-data class ProcessingProgress(
+data class ProgressModel(
     @StringRes val statusTextResourceId: Int,
     val overallProgress: Int
 )
 
-suspend fun FlowCollector<ProcessingProgress>.emit(@StringRes stateId: Int, progress: Int) {
-    emit(ProcessingProgress(stateId, progress))
+suspend fun FlowCollector<ProgressModel>.emit(@StringRes stateId: Int, progress: Int) {
+    emit(ProgressModel(stateId, progress))
 }
 
 @ExperimentalCoroutinesApi
-suspend fun ProducerScope<ProcessingProgress>.send(@StringRes stateId: Int, progress: Int) {
-    send(ProcessingProgress(stateId, progress))
+suspend fun ProducerScope<ProgressModel>.send(@StringRes stateId: Int, progress: Int) {
+    send(ProgressModel(stateId, progress))
 }

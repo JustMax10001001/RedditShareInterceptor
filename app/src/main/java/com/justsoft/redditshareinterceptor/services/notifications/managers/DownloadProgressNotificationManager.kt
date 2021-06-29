@@ -1,11 +1,11 @@
-package com.justsoft.redditshareinterceptor.services.notfications.managers
+package com.justsoft.redditshareinterceptor.services.notifications.managers
 
 import android.app.Notification
 import android.content.Context
 import android.os.Build
 import androidx.annotation.StringRes
 import com.justsoft.redditshareinterceptor.R
-import com.justsoft.redditshareinterceptor.services.notfications.NotificationService
+import com.justsoft.redditshareinterceptor.services.notifications.NotificationService
 
 class DownloadProgressNotificationManager internal constructor(
     private val context: Context,

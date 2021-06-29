@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.services.notfications
+package com.justsoft.redditshareinterceptor.services.notifications
 
 import android.app.Notification
 import android.app.NotificationChannel

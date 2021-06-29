@@ -2,8 +2,9 @@ package com.justsoft.redditshareinterceptor
 
 import android.util.Log
 import com.google.firebase.analytics.ktx.logEvent
-import com.justsoft.redditshareinterceptor.model.ProcessingProgress
+import com.justsoft.redditshareinterceptor.model.MediaPost
 import com.justsoft.redditshareinterceptor.model.ProcessingResult
+import com.justsoft.redditshareinterceptor.model.ProgressModel
 import com.justsoft.redditshareinterceptor.model.emit
 import com.justsoft.redditshareinterceptor.model.media.*
 import com.justsoft.redditshareinterceptor.model.media.MediaContentType.*
@@ -38,7 +39,7 @@ class UniversalUrlProcessor @Inject constructor(
 
     suspend fun handleUrl(
         url: String
-    ): Flow<ProcessingProgress> = flow {
+    ): Flow<ProgressModel> = flow {
         Log.d(LOG_TAG, "Starting url processing")
         val stopwatch = Stopwatch().apply { start() }
         val processingResult = try {
@@ -53,7 +54,7 @@ class UniversalUrlProcessor @Inject constructor(
                 param("processing_time", delta)
             }
 
-            ProcessingResult.success(info, delta)
+            ProcessingResult.success(createMediaPost(info), delta)
         } catch (e: Exception) {
             val delta = stopwatch.stopAndGetTimeElapsed()
             Log.e(LOG_TAG, "Processing failed in $delta ms", e)
@@ -63,9 +64,29 @@ class UniversalUrlProcessor @Inject constructor(
         onProcessingFinished(processingResult)
     }
 
+    private fun createMediaPost(info: MediaDownloadInfo): MediaPost = MediaPost(
+        info.mediaContentType,
+        title = info.caption,
+        innerItems = when (info.mediaContentType) {
+            TEXT -> emptyList()
+            VIDEO_AUDIO -> listOf(
+                MediaAttachment(
+                    mediaPathProvider.getUriForMediaType(info.mediaContentType),
+                    info.mediaContentType
+                )
+            )
+            else -> info.mediaDownloadList.map {
+                MediaAttachment(
+                    it.metadata.uri,
+                    it.mediaType
+                )
+            }
+        }
+    )
+
     private suspend fun startUrlProcessing(
         url: String,
-        flowCollector: FlowCollector<ProcessingProgress>
+        flowCollector: FlowCollector<ProgressModel>
     ): MediaDownloadInfo {
         val urlHandler = selectUrlHandler(url)
         flowCollector.emit(R.string.processing_media_state_found_url_handler, 5)

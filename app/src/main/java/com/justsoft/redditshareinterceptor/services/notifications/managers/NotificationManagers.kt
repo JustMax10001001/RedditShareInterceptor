@@ -1,4 +1,4 @@
-package com.justsoft.redditshareinterceptor.services.notfications.managers
+package com.justsoft.redditshareinterceptor.services.notifications.managers
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -6,7 +6,7 @@ import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import com.justsoft.redditshareinterceptor.R
-import com.justsoft.redditshareinterceptor.services.notfications.NotificationService
+import com.justsoft.redditshareinterceptor.services.notifications.NotificationService
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -50,21 +50,21 @@ internal class NotificationManagersModule {
             NotificationManager.IMPORTANCE_HIGH
         )
 
-    /*@Provides
+    @Provides
     @Singleton
     fun provideDownloadFinishedNotificationManager(
         @ApplicationContext context: Context,
         notificationService: NotificationService
-    ): DownloadProgressNotificationManager {
+    ): DownloadFinishedNotificationManager {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            notificationService.registerNotificationChannel(getDownloadInProgressChannel(context))
+            notificationService.registerNotificationChannel(getDownloadFinishedChannel(context))
 
-        return DownloadProgressNotificationManager(
+        return DownloadFinishedNotificationManager(
             context,
             notificationService,
-            ONGOING_DOWNLOAD_CHANNEL_ID
+            DOWNLOAD_FINISHED_CHANNEL_ID
         )
-    }*/
+    }
 
     companion object {
         private const val ONGOING_DOWNLOAD_CHANNEL_ID = "ongoing_download"

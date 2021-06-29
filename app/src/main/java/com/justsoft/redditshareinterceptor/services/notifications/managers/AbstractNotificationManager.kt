@@ -1,10 +1,11 @@
-package com.justsoft.redditshareinterceptor.services.notfications.managers
+package com.justsoft.redditshareinterceptor.services.notifications.managers
 
 import android.app.Notification
 import android.app.Service
 import android.content.Context
 import android.os.Build
-import com.justsoft.redditshareinterceptor.services.notfications.NotificationService
+import androidx.core.app.NotificationCompat
+import com.justsoft.redditshareinterceptor.services.notifications.NotificationService
 
 abstract class AbstractNotificationManager(
     private val context: Context,
@@ -13,12 +14,12 @@ abstract class AbstractNotificationManager(
 ) {
     abstract val notificationId: Int
 
-    protected fun createNotificationBuilder(): Notification.Builder =
+    protected fun createNotificationBuilder(): NotificationCompat.Builder =
         @Suppress("DEPRECATION")
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
-            Notification.Builder(context, notificationChannelId)
+            NotificationCompat.Builder(context, notificationChannelId)
         else
-            Notification.Builder(context)
+            NotificationCompat.Builder(context)
 
     protected abstract fun buildNotification(): Notification
 

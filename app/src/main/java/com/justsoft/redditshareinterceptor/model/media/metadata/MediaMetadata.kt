@@ -68,12 +68,4 @@ class MediaMetadata {
 
         const val KEY_LOCATION_URI = "uri"
     }
-
-    class Builder() {
-
-        private val metadata = MediaMetadata()
-
-        //var resolutionX: Int
-        //set(value) = metadata.propertyMap[KEY_RESOLUTION_X] =
-    }
 }
